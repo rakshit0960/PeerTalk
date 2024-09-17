@@ -11,9 +11,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketServer(server, {
   cors: {
-    origin: "*",
+    origin: 'http://localhost:5173', 
   },
 });
+
 
 app.use(cors({
   origin: 'http://localhost:5173',

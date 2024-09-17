@@ -3,7 +3,7 @@ import { Socket } from "socket.io";
 import { jwt_secret } from "../utils/token.utils";
 
 export const authenticateSocket = (socket: Socket, next: any) => {
-  const token = socket.handshake.auth?.token;
+  const token = socket.handshake.headers.authorization;
   if (!token) {
     return next(new Error("Authentication error"));
   }

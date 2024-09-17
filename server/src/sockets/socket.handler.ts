@@ -2,7 +2,6 @@ import { Server, Socket } from "socket.io";
 import { authenticateSocket } from "./socket.utils";
 
 export const socketHandler = (io: Server) => {
-  // Handle connection with authentication
   io.use(authenticateSocket);
 
   io.on("connection", (socket: Socket) => {
@@ -19,5 +18,10 @@ export const socketHandler = (io: Server) => {
     socket.on("disconnect", () => {
       console.log(`User ${socket.data.userId} disconnected`);
     });
+
+    socket.on('connect_error', (err) => {
+      console.error('Connection Error:', err);
+    });
+
   });
 };

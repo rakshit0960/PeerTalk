@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { initializeStore } from "@/utils/storeUtils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -54,8 +55,8 @@ export default function Login() {
 
         localStorage.setItem("token", token);
 
-        // redirect the user to another page
-        navigate("/home");
+        initializeStore();
+        navigate("/chat");
       } else {
         console.error("Login failed:", result.error || "Unknown error");
         setError("root", {
