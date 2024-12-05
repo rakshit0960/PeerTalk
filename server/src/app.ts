@@ -5,26 +5,31 @@ import { verifyToken } from "./middleware/auth.middleware";
 import { socketHandler } from "./sockets/socket.handler";
 import { CustomRequest } from "./types/auth.type";
 import authRoutes from "./routers/auth.routes";
-import cors from 'cors';
+import cors from "cors";
+import chatRoutes from "./routers/chat.routes";
+import usersRoutes from "./routers/users.routes";
 
 const app = express();
 const server = http.createServer(app);
 const io = new SocketServer(server, {
   cors: {
-    origin: 'http://localhost:5173', 
+    origin: "http://localhost:5173",
   },
 });
 
-
-app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: 'GET,POST,PUT,DELETE',
-  allowedHeaders: 'Content-Type,Authorization',
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+  })
+);
 
 app.use(express.json());
 
 app.use("/auth", authRoutes);
+app.use("/chat", verifyToken, chatRoutes);
+app.use("/users", verifyToken, usersRoutes);
 
 app.get("/protected", verifyToken, (req: CustomRequest, res: Response) => {
   res.json({ message: `Welcome, user ${req.userId}` });

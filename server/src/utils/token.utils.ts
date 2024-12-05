@@ -1,8 +1,7 @@
 import jwt from "jsonwebtoken";
-import { emitWarning } from "process";
 import { z } from "zod";
 
-export const jwt_secret = process.env.JWT_SECRET_KEY || "temp"
+export const jwt_secret = process.env.JWT_SECRET_KEY || "temp1"
 
 export const tokenPayloadSchema = z.object({
   userId: z.number(),

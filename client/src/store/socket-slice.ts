@@ -52,7 +52,7 @@ export const createSocketSlice: StateCreator<
         });
       });
 
-      set(({ socket }));
+      set({ socket });
     }
   },
   disconnect: () => {

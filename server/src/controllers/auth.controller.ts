@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { z } from "zod";
-import { users } from "../models/user.model";
+import db from "../config/prisma";
 import { generateToken } from "../utils/token.utils";
 
 const registerSchema = z
@@ -35,19 +35,24 @@ export const register = async (req: Request, res: Response) => {
   }
 
   const { name, email, password } = validation.data;
-  const existingUser = users.find((user) => user.email === email);
+  const existingUser = await db.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
   if (existingUser) {
     return res.status(400).json({ error: "User already exists" });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = {
-    id: users.length + 1,
-    name,
-    email,
-    password: hashedPassword,
-  };
-  users.push(newUser);
+  const newUser = await db.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+    },
+  });
 
   const token = generateToken(newUser.id, newUser.name, newUser.email);
   res.json({ message: "User registered successfully", token });
@@ -60,7 +65,8 @@ export const login = async (req: Request, res: Response) => {
   }
 
   const { email, password } = validation.data;
-  const user = users.find((u) => u.email === email);
+  const user = await db.user.findUnique({ where: { email: email } });
+
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(400).json({ error: "Invalid email or password" });
   }

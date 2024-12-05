@@ -5,13 +5,15 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import "./index.css";
-import Chat from "./pages/Chat";
+import ChatId from "./pages/ChatId";
+import ChatLayout from "./pages/ChatLayout";
 import Home from "./pages/home";
 import Layout from "./pages/layout";
 import Login from "./pages/login";
 import Register from "./pages/register";
-import { initializeStore } from "./utils/storeUtils";
 import { useStore } from "./store/store";
+import { initializeStore } from "./utils/storeUtils";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 const router = createBrowserRouter([
   {
@@ -37,8 +39,15 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/chat",
-    element: <Chat />,
+    path: "chat",
+    element: <ChatLayout />,
+    children: [
+      {
+        index: true,
+        path: ":id",
+        element: <ChatId />,
+      },
+    ],
   },
 ]);
 
@@ -47,5 +56,10 @@ export default function App() {
     if (!useStore.getState().isInitialized) initializeStore();
   }, []);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <ToastProvider />
+    </>
+  );
 }
