@@ -5,6 +5,7 @@ import { useStore } from "@/store/store";
 import { Message } from "@/types/message";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ConversationsLoading } from "./loading/ConversationSkeleton";
 
 type ConversationWithLastMessage = Conversation & {
   lastMessage?: Message;
@@ -14,14 +15,58 @@ type ConversationWithLastMessage = Conversation & {
 export default function Conversations() {
   const { id } = useParams();
   const [conversationsWithMessages, setConversationsWithMessages] = useState<ConversationWithLastMessage[]>([]);
-  const { userId } = useStore((state) => ({
+  const { userId, token } = useStore((state) => ({
     userId: state.userId,
+    token: state.token
   }));
   const socket = useStore(state => state.socket);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    const fetchConversations = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("http://localhost:3000/chat/conversations", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) throw new Error('Failed to fetch conversations');
+        const data = await response.json();
+
+        // Fetch last messages for each conversation
+        const withMessages = await Promise.all(
+          data.map(async (conv: Conversation) => {
+            const messagesResponse = await fetch(
+              `http://localhost:3000/chat/${conv.id}/messages`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            const messages = await messagesResponse.json();
+            return {
+              ...conv,
+              lastMessage: messages[messages.length - 1],
+              newMessagesCount: messages.filter(
+                (m: Message) => m.senderId !== userId && !m.read
+              ).length,
+            };
+          })
+        );
+        setConversationsWithMessages(withMessages);
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchConversations();
+    }
+  }, [token, userId]);
 
   // Listen for new messages
   useEffect(() => {
@@ -57,7 +102,7 @@ export default function Conversations() {
         await fetch(`http://localhost:3000/chat/${id}/read`, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${useStore.getState().token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -79,50 +124,17 @@ export default function Conversations() {
     };
 
     markMessagesAsRead();
-  }, [id]);
-
-  const fetchConversations = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/chat/conversations", {
-        headers: {
-          Authorization: `Bearer ${useStore.getState().token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch conversations');
-      const data = await response.json();
-
-      // Fetch last messages for each conversation
-      const withMessages = await Promise.all(
-        data.map(async (conv: Conversation) => {
-          const messagesResponse = await fetch(
-            `http://localhost:3000/chat/${conv.id}/messages`,
-            {
-              headers: {
-                Authorization: `Bearer ${useStore.getState().token}`,
-              },
-            }
-          );
-          const messages = await messagesResponse.json();
-          return {
-            ...conv,
-            lastMessage: messages[messages.length - 1],
-            newMessagesCount: messages.filter(
-              (m: Message) => m.senderId !== userId && !m.read
-            ).length,
-          };
-        })
-      );
-      setConversationsWithMessages(withMessages);
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
-    }
-  };
+  }, [id, token]);
 
   const getOtherParticipant = (conversation: Conversation) => {
     return conversation.participants.find(
       (participant) => participant.id !== userId
     );
   };
+
+  if (loading) {
+    return <ConversationsLoading />;
+  }
 
   return (
     <ScrollArea className="h-[calc(100vh-180px)]">

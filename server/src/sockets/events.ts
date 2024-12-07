@@ -19,8 +19,23 @@ export const handleConnection = (io: Server, socket: Socket) => {
     if (parseResult.error) return socket.emit('error', parseResult.error);
 
     message = parseResult.data;
-    // Emit to the conversation room using conversationId instead of message.id
     io.to(message.conversationId.toString()).emit('get-new-message', message);
+  });
+
+  // Handle typing events
+  socket.on("typing-start", ({ conversationId, userId, userName }: {
+    conversationId: number;
+    userId: number;
+    userName: string;
+  }) => {
+    socket.to(conversationId.toString()).emit("user-typing", { userId, userName });
+  });
+
+  socket.on("typing-stop", ({ conversationId, userId }: {
+    conversationId: number;
+    userId: number;
+  }) => {
+    socket.to(conversationId.toString()).emit("user-stop-typing", { userId });
   });
 
   // Handle disconnect event

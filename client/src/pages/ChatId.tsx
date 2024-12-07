@@ -1,22 +1,17 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ToastAction } from "@/components/ui/toast";
 import { toast } from "@/hooks/use-toast";
 import { useStore } from "@/store/store";
 import { Message, messageSchema } from "@/types/message";
 import { z } from "zod";
-import {
-  Mic,
-  MoreVertical,
-  Paperclip,
-  Search,
-  Send,
-  Smile,
-} from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { ChatHeader } from "@/components/chat/ChatHeader";
+import { MessageList } from "@/components/chat/MessageList";
+import { MessageInput } from "@/components/chat/MessageInput";
+import { ToastAction } from "@/components/ui/toast";
+import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { useCallback, useMemo } from "react";
+import debounce from "lodash/debounce";
+import { SendingIndicator } from "@/components/chat/SendingIndicator";
 
 const conversationSchema = z.object({
   id: z.number(),
@@ -34,7 +29,6 @@ type ConversationResponse = z.infer<typeof conversationSchema>;
 export default function ChatId() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState<string>("");
   const [otherParticipant, setOtherParticipant] = useState<{
@@ -42,10 +36,13 @@ export default function ChatId() {
     name: string;
     email: string;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [typingUsers, setTypingUsers] = useState<Map<number, string>>(new Map());
+  const [isSending, setIsSending] = useState(false);
 
   const socket = useStore(store => store.socket);
   const userId = useStore(store => store.userId);
-
+  const token = useStore(store => store.token);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -64,7 +61,7 @@ export default function ChatId() {
       try {
         const response = await fetch(`http://localhost:3000/chat/conversations`, {
           headers: {
-            Authorization: `Bearer ${useStore.getState().token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -77,13 +74,27 @@ export default function ChatId() {
           (conv: ConversationResponse) => conv.id === parseInt(id)
         );
 
-        if (currentConversation) {
-          const other = currentConversation.participants.find(
-            (p) => p.id !== userId
-          );
-          if (other) {
-            setOtherParticipant(other);
-          }
+        if (!currentConversation) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Conversation not found",
+          });
+          return;
+        }
+
+        const other = currentConversation.participants.find(
+          (p) => p.id !== userId
+        );
+
+        if (other) {
+          setOtherParticipant(other);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to find conversation participant",
+          });
         }
       } catch (error) {
         console.error("Error fetching conversation details:", error);
@@ -99,22 +110,25 @@ export default function ChatId() {
     };
 
     fetchConversationDetails();
-  }, [id, userId]);
+  }, [id, userId, token]);
 
   useEffect(() => {
     const fetchMessages = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`http://localhost:3000/chat/${id}/messages`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${useStore.getState().token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         const data = await response.json();
         setMessages(data);
       } catch (error) {
         console.error("Error fetching messages:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -122,11 +136,27 @@ export default function ChatId() {
       fetchMessages();
       socket?.emit('join-conversation', { id });
     }
-  }, [id, socket]);
+  }, [id, socket, token]);
+
+  const markMessagesAsRead = useCallback(async () => {
+    if (!id || !token) return;
+
+    try {
+      await fetch(`http://localhost:3000/chat/${id}/read`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Update local unread count
+      useStore.getState().clearUnread(parseInt(id));
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  }, [id, token]);
 
   useEffect(() => {
     const handleNewMessage = (message: Message) => {
-      console.log('get-new-message', message);
       if (!id) return;
 
       if (message.conversationId !== parseInt(id)) {
@@ -155,6 +185,7 @@ export default function ChatId() {
           if (messageExists) return prev;
           const newMessages = [...prev, message];
           setTimeout(scrollToBottom, 100);
+          markMessagesAsRead();
           return newMessages;
         });
       }
@@ -162,12 +193,11 @@ export default function ChatId() {
 
     if (socket) {
       socket.on('get-new-message', handleNewMessage);
-
       return () => {
         socket.off('get-new-message', handleNewMessage);
       };
     }
-  }, [socket, id, navigate]);
+  }, [socket, id, navigate, markMessagesAsRead]);
 
   // Clear unread messages when entering a conversation
   useEffect(() => {
@@ -179,14 +209,18 @@ export default function ChatId() {
   const sendMessage = async () => {
     if (!inputMessage.trim() || !id) return;
 
+    const messageContent = inputMessage;
+    setInputMessage("");
+    setIsSending(true);
+
     try {
       const response = await fetch(`http://localhost:3000/chat/${id}/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${useStore.getState().token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: inputMessage }),
+        body: JSON.stringify({ content: messageContent }),
       });
 
       if (!response.ok) {
@@ -196,12 +230,9 @@ export default function ChatId() {
       const data = await response.json();
       const parsedData = messageSchema.parse(data);
 
-      // Update local messages immediately
       setMessages(prev => [...prev, parsedData]);
 
-      // Emit to socket
       socket?.emit('new-message', parsedData);
-      setInputMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -209,99 +240,75 @@ export default function ChatId() {
         title: "Error",
         description: "Failed to send message",
       });
+      setInputMessage(messageContent);
+    } finally {
+      setIsSending(false);
     }
   };
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserTyping = ({ userId, userName }: { userId: number; userName: string }) => {
+      if (userId !== useStore.getState().userId) {
+        setTypingUsers(prev => new Map(prev).set(userId, userName));
+      }
+    };
+
+    const handleUserStopTyping = ({ userId }: { userId: number }) => {
+      if (userId !== useStore.getState().userId) {
+        setTypingUsers(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(userId);
+          return newMap;
+        });
+      }
+    };
+
+    socket.on("user-typing", handleUserTyping);
+    socket.on("user-stop-typing", handleUserStopTyping);
+
+    return () => {
+      socket.off("user-typing", handleUserTyping);
+      socket.off("user-stop-typing", handleUserStopTyping);
+    };
+  }, [socket]);
+
+  const emitTyping = useMemo(
+    () =>
+      debounce((isTyping: boolean) => {
+        if (!socket || !id) return;
+
+        const eventName = isTyping ? "typing-start" : "typing-stop";
+        socket.emit(eventName, {
+          conversationId: parseInt(id),
+          userId,
+          userName: useStore.getState().name,
+        });
+      }, 300),
+    [socket, id, userId]
+  );
+
   return (
     <>
-      <div className="flex items-center justify-between p-4 ">
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src="" alt={otherParticipant?.name} />
-            <AvatarFallback>
-              {otherParticipant?.name?.[0]?.toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="font-medium">{otherParticipant?.name || 'Loading...'}</h2>
-            <p className="text-xs text-gray-500">
-              {otherParticipant?.email || 'Loading...'}
-            </p>
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="icon">
-            <Search className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-      <ScrollArea className="flex-1 p-4">
-        {messages.map((message) => (
-          <div
-            key={`${message.id}-${message.createdAt}`}
-            className={`flex ${
-              message.senderId === useStore.getState().userId ? "justify-end" : "justify-start"
-            } mb-4`}
-          >
-            <div
-              className={`max-w-[70%] p-3 rounded-lg ${
-                message.senderId === useStore.getState().userId
-                  ? "bg-blue-950 ml-auto"
-                  : "bg-gray-900"
-              }`}
-            >
-              <p>{message.content}</p>
-              <span className="text-xs text-gray-500 mt-1 block">
-                {new Date(message.createdAt || '').toLocaleTimeString()}
-              </span>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </ScrollArea>
-      <div className="p-4 ">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            // handleSendMessage();
-          }}
-          className="flex items-center gap-2"
-        >
-          <Button variant="ghost" size="icon">
-            <Smile className="h-6 w-6" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Paperclip className="h-6 w-6" />
-          </Button>
-          <Input
-            className="flex-1"
-            type="text"
-            placeholder="Type a message"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") sendMessage();
-            }}
-          />
-          {inputMessage ? (
-            <Button
-              type="submit"
-              size="icon"
-              className="rounded-full"
-              onClick={sendMessage}
-            >
-              <Send className="h-6 w-6" />
-              <span className="sr-only">Send</span>
-            </Button>
-          ) : (
-            <Button variant="ghost" size="icon">
-              <Mic className="h-6 w-6" />
-            </Button>
-          )}
-        </form>
+      <ChatHeader participant={otherParticipant} loading={loading} />
+      <MessageList
+        ref={messagesEndRef}
+        messages={messages}
+        loading={loading}
+      />
+      <div className="relative">
+        <TypingIndicator
+          typingUsers={Array.from(typingUsers.values())}
+          isGroup={false}
+        />
+        <SendingIndicator isSending={isSending} />
+        <MessageInput
+          inputMessage={inputMessage}
+          setInputMessage={setInputMessage}
+          sendMessage={sendMessage}
+          onTyping={(isTyping) => emitTyping(isTyping)}
+        />
       </div>
     </>
   );

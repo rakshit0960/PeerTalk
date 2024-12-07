@@ -1,4 +1,4 @@
-import useDebounce from "@/hooks/useDebounce";
+import {useDebounce }from "@/hooks/useDebounce";
 import { userSearchSchema } from "@/schema/user-search";
 import { useStore } from "@/store/store";
 import { UserSearchResult } from "@/types/user-search";
@@ -13,7 +13,7 @@ export default function UsersSearch() {
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
-  const debouncedQuery = useDebounce<string>(query);
+  const debouncedQuery = useDebounce<string>(query, 500);
 
   useEffect(() => {
     if (!debouncedQuery) {
