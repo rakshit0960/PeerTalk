@@ -9,13 +9,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import UserSearch from "@/components/UserSearch";
 import { useStore } from "@/store/store";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, LogOut } from "lucide-react";
 import { useEffect, useLayoutEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 
 export default function ChatLayout() {
   const navigate = useNavigate();
+  const logout = useStore(state => state.logout);
 
   const { name, userId, isInitialized } = useStore(
     useShallow((state) => ({
@@ -42,6 +43,11 @@ export default function ChatLayout() {
     return () => disconnect();
   }, [connect, disconnect]);
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div className="flex h-screen mx-auto overflow-hidden">
       <ResizablePanelGroup
@@ -62,7 +68,7 @@ export default function ChatLayout() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div onClick={() => console.log(socket)}>
+              <div>
                 {(socket && isConnected) ? (
                   <div className="text-green-600">connected</div>
                 ) : (
@@ -70,8 +76,8 @@ export default function ChatLayout() {
                 )}
               </div>
               <UserSearch />
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-5 w-5" />
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>

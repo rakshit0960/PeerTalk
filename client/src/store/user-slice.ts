@@ -48,4 +48,18 @@ export const createUserSlice: StateCreator<
       state.token = token;
     });
   },
+  logout: () => {
+    set((state) => {
+      state.token = null;
+      state.userId = null;
+      state.name = '';
+      state.email = '';
+      state.isInitialized = false;
+      // Clear any stored data
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('name');
+      localStorage.removeItem('email');
+    });
+  },
 });
