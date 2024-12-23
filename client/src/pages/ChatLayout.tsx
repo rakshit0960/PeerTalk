@@ -9,7 +9,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import UserSearch from "@/components/UserSearch";
 import { useStore } from "@/store/store";
-import { MoreVertical, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useEffect, useLayoutEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
@@ -45,7 +45,7 @@ export default function ChatLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (

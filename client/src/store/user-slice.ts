@@ -4,6 +4,7 @@ import { User } from "@/utils/tokenUtils";
 export type UserState = User & {
   isInitialized: boolean;
   token: string | null;
+  isGuest: boolean;
 };
 
 type UserAction = {
@@ -12,6 +13,8 @@ type UserAction = {
   setEmail: (email: string) => void;
   setUserId: (userId: number) => void;
   setIsInitialized: (value: boolean) => void;
+  setIsGuest: (value: boolean) => void;
+  logout: () => Promise<void>;
 };
 
 export type UserSlice = UserState & UserAction;
@@ -21,12 +24,13 @@ export const createUserSlice: StateCreator<
   [["zustand/immer", never]],
   [],
   UserSlice
-> = (set) => ({
+> = (set, get) => ({
   token: null,
   userId: 0,
   name: "",
   email: "",
   isInitialized: false,
+  isGuest: false,
   setName: (username) =>
     set((state) => {
       state.name = username;
@@ -48,14 +52,35 @@ export const createUserSlice: StateCreator<
       state.token = token;
     });
   },
-  logout: () => {
+  setIsGuest: (value) =>
+    set((state) => {
+      state.isGuest = value;
+    }),
+  logout: async () => {
+    const token = get().token;
+    const isGuest = get().isGuest;
+
+    if (isGuest && token) {
+      try {
+        await fetch('http://localhost:3000/auth/guest', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (error) {
+        console.error('Error deleting guest account:', error);
+      }
+    }
+
     set((state) => {
       state.token = null;
-      state.userId = null;
+      state.userId = 0;
       state.name = '';
       state.email = '';
       state.isInitialized = false;
-      // Clear any stored data
+      state.isGuest = false;
+      // Clear stored data
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
       localStorage.removeItem('name');

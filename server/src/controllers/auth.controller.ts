@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import db from "../config/prisma";
 import { generateToken } from "../utils/token.utils";
+import { CustomRequest } from "../types/auth.type";
 
 const registerSchema = z
   .object({
@@ -73,4 +74,54 @@ export const login = async (req: Request, res: Response) => {
 
   const token = generateToken(user.id, user.name, user.email);
   res.json({ message: "Login successful", token });
+};
+
+export const guestLogin = async (req: Request, res: Response) => {
+  try {
+    const guestId = Math.random().toString(36).substring(7);
+    const guestName = `Guest_${guestId}`;
+    const guestEmail = `guest_${guestId}@temp.com`;
+    const guestPassword = Math.random().toString(36);
+
+    const hashedPassword = await bcrypt.hash(guestPassword, 10);
+    const newUser = await db.user.create({
+      data: {
+        name: guestName,
+        email: guestEmail,
+        password: hashedPassword,
+        isGuest: true,
+      },
+    });
+
+    const token = generateToken(newUser.id, newUser.name, newUser.email);
+    res.json({ message: "Guest login successful", token });
+  } catch (error) {
+    console.error("Error creating guest account:", error);
+    res.status(500).json({ error: "Failed to create guest account" });
+  }
+};
+
+export const deleteGuestAccount = async (req: CustomRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user || !user.isGuest) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await db.user.delete({
+      where: { id: userId },
+    });
+
+    res.json({ message: "Guest account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting guest account:", error);
+    res.status(500).json({ error: "Failed to delete guest account" });
+  }
 };

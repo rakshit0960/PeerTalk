@@ -18,6 +18,7 @@ model User {
   conversations    Conversation[]
   sentMessages     Message[]      @relation("SentMessages")
   receivedMessages Message[]      @relation("ReceivedMessages")
+  isGuest          Boolean        @default(false)
 }
 
 model Conversation {
@@ -38,7 +39,7 @@ model Message {
   conversationId Int
   read           Boolean      @default(false)
   createdAt      DateTime     @default(now())
-  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
-  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
