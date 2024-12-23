@@ -9,12 +9,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import UserSearch from "@/components/UserSearch";
 import { useStore } from "@/store/store";
-import { LogOut } from "lucide-react";
+import { LogOut, Wifi } from "lucide-react";
 import { useEffect, useLayoutEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export default function ChatLayout() {
+  const location = useLocation();
+  const isChatOpen = location.pathname !== '/chat';
   const navigate = useNavigate();
   const logout = useStore(state => state.logout);
 
@@ -48,14 +52,40 @@ export default function ChatLayout() {
     navigate('/');
   };
 
+  const ConnectionIndicator = () => (
+    <motion.div
+      initial={{ opacity: 0.7 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        repeat: Infinity,
+        repeatType: "reverse",
+        duration: 2,
+        ease: "easeInOut",
+      }}
+      className="flex items-center"
+    >
+      <Wifi
+        className={cn(
+          "w-4 h-4 transition-colors duration-300",
+          socket && isConnected
+            ? "text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]"
+            : "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+        )}
+      />
+    </motion.div>
+  );
+
   return (
     <div className="flex h-screen mx-auto overflow-hidden">
       <ResizablePanelGroup
         direction="horizontal"
         className="flex h-screen mx-auto overflow-hidden"
       >
-        <ResizablePanel className="w-1/3 border-r p-2" defaultSize={30}>
-          <div className="flex items-center justify-between p-4 ">
+        <ResizablePanel
+          className={`border-r md:block ${isChatOpen ? 'hidden' : 'w-full'}`}
+          defaultSize={30}
+        >
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2">
               <Avatar>
                 <AvatarImage
@@ -68,13 +98,7 @@ export default function ChatLayout() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div>
-                {(socket && isConnected) ? (
-                  <div className="text-green-600">connected</div>
-                ) : (
-                  <div className="text-red-600">disconnected</div>
-                )}
-              </div>
+              <ConnectionIndicator />
               <UserSearch />
               <Button variant="ghost" size="icon" onClick={handleLogout}>
                 <LogOut className="h-5 w-5" />
@@ -84,8 +108,13 @@ export default function ChatLayout() {
           <Separator />
           <Conversations />
         </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel className="flex-1 flex flex-col bg-[url('/whatsapp-bg.png')] bg-repeat">
+
+        <ResizableHandle className="invisible md:visible" withHandle />
+
+        <ResizablePanel
+          className={`flex-1 flex flex-col bg-[url('/whatsapp-bg.png')] bg-repeat ${!isChatOpen ? 'hidden md:flex' : 'w-full'
+            }`}
+        >
           <Outlet />
         </ResizablePanel>
       </ResizablePanelGroup>
