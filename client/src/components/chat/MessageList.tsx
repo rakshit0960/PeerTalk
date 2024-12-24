@@ -1,48 +1,60 @@
-import { Message } from "@/types/message";
 import { useStore } from "@/store/store";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessagesLoading } from "../loading/MessageSkeleton";
+import { Message } from "@/types/message";
 import { forwardRef } from "react";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "../ui/scroll-area";
+import { MessageSkeleton } from "../loading/MessageSkeleton";
 
-type MessageListProps = {
+interface MessageListProps {
   messages: Message[];
-  loading: boolean;
-};
+  loading?: boolean;
+}
 
 export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
   ({ messages, loading }, ref) => {
-    const userId = useStore(state => state.userId);
+    const userId = useStore((state) => state.userId);
+
+    if (loading) {
+      return <MessageSkeleton />;
+    }
 
     return (
-      <ScrollArea className="flex-1 relative">
-        {loading ? (
-          <MessagesLoading />
-        ) : (
-          <div className="p-4">
-            {messages.map((message) => (
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((message) => {
+            const isOwn = message.senderId === userId;
+
+            return (
               <div
-                key={`${message.id}-${message.createdAt}`}
-                className={`flex ${
-                  message.senderId === userId ? "justify-end" : "justify-start"
-                } mb-4`}
+                key={message.id}
+                className={cn("flex", isOwn ? "justify-end" : "justify-start")}
               >
                 <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    message.senderId === userId
-                      ? "bg-blue-950 ml-auto"
-                      : "bg-gray-900"
-                  }`}
+                  className={cn(
+                    "rounded-2xl px-4 py-2.5 max-w-[85%] shadow-lg transition-all",
+                    isOwn
+                      ? "bg-gradient-to-br from-emerald-600/95 to-emerald-700/95 text-white"
+                      : "bg-gradient-to-br from-zinc-800/95 to-zinc-900/95 backdrop-blur-sm border border-zinc-800/50"
+                  )}
                 >
-                  <p>{message.content}</p>
-                  <span className="text-xs text-gray-500 mt-1 block">
-                    {new Date(message.createdAt || '').toLocaleTimeString()}
-                  </span>
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <div
+                    className={cn(
+                      "text-[10px] mt-1.5",
+                      isOwn ? "text-white/80" : "text-zinc-400"
+                    )}
+                  >
+                    {new Date(message.createdAt || '').toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
                 </div>
               </div>
-            ))}
-            <div ref={ref} />
-          </div>
-        )}
+            );
+          })}
+          <div ref={ref} />
+        </div>
       </ScrollArea>
     );
   }

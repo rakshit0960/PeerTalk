@@ -155,6 +155,7 @@ export default function ChatId() {
     }
   }, [id, token]);
 
+  // Listen for new messages
   useEffect(() => {
     const handleNewMessage = (message: Message) => {
       if (!id) return;
@@ -292,12 +293,15 @@ export default function ChatId() {
   return (
     <>
       <ChatHeader participant={otherParticipant} loading={loading} />
-      <MessageList
-        ref={messagesEndRef}
-        messages={messages}
-        loading={loading}
-      />
-      <div className="relative">
+      <div className="flex-1 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 to-background/30 pointer-events-none" />
+        <MessageList
+          ref={messagesEndRef}
+          messages={messages}
+          loading={loading}
+        />
+      </div>
+      <div className="relative border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <TypingIndicator
           typingUsers={Array.from(typingUsers.values())}
           isGroup={false}

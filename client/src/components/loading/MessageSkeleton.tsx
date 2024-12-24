@@ -1,27 +1,30 @@
-import { Skeleton } from "../ui/skeleton"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "../ui/skeleton"
 
-export function MessageSkeleton({ align = "start" }: { align?: "start" | "end" }) {
+export function MessageSkeleton() {
   return (
-    <div className={`flex justify-${align} mb-4`}>
-      <div
-        className={cn(
-          "max-w-[85%] md:max-w-[70%] space-y-2.5 w-full",
-          align === "end" ? "items-end" : "items-start"
-        )}
-      >
+    <div className="flex-1 p-4 space-y-4">
+      {[...Array(6)].map((_, i) => (
         <div
-          className={cn(
-            "p-4 rounded-2xl animate-pulse",
-            align === "end" ? "bg-blue-950/50" : "bg-gray-900/50"
-          )}
+          key={i}
+          className={cn("flex", i % 2 === 0 ? "justify-end" : "justify-start")}
         >
-          <Skeleton className="h-4 sm:h-5 w-[180px] sm:w-[250px] mb-2.5" />
-          <Skeleton className="h-4 sm:h-5 w-[220px] sm:w-[300px]" />
-          <Skeleton className="h-4 sm:h-5 w-[160px] sm:w-[200px] mt-2.5" />
+          <div className={cn("space-y-2 max-w-[85%]")}>
+            <Skeleton
+              className={cn(
+                "h-12 w-48",
+                i % 2 === 0 ? "bg-primary/20" : "bg-muted"
+              )}
+            />
+            <Skeleton
+              className={cn(
+                "h-3 w-16",
+                i % 2 === 0 ? "ml-auto bg-primary/10" : "bg-muted/50"
+              )}
+            />
+          </div>
         </div>
-        <Skeleton className="h-3 sm:h-3.5 w-[60px] sm:w-[80px] opacity-70" />
-      </div>
+      ))}
     </div>
   )
 }

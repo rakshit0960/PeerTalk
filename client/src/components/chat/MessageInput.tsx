@@ -1,68 +1,59 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, Paperclip, Send, Smile } from "lucide-react";
+import { Send } from "lucide-react";
+import { useEffect, useRef } from "react";
 
-type MessageInputProps = {
+interface MessageInputProps {
   inputMessage: string;
-  setInputMessage: (message: string) => void;
+  setInputMessage: (value: string) => void;
   sendMessage: () => void;
   onTyping: (isTyping: boolean) => void;
-};
+}
 
-export function MessageInput({ inputMessage, setInputMessage, sendMessage, onTyping }: MessageInputProps) {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputMessage(e.target.value);
-    onTyping(e.target.value.length > 0);
-  };
+export function MessageInput({
+  inputMessage,
+  setInputMessage,
+  sendMessage,
+  onTyping,
+}: MessageInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isTyping = useRef(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    sendMessage();
-    onTyping(false);
+  useEffect(() => {
+    if (inputMessage && !isTyping.current) {
+      isTyping.current = true;
+      onTyping(true);
+    } else if (!inputMessage && isTyping.current) {
+      isTyping.current = false;
+      onTyping(false);
+    }
+  }, [inputMessage, onTyping]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
-    <div className="p-4 border-t">
-      <form
-        onSubmit={handleSubmit}
-        className="flex items-center gap-2"
+    <div className="p-4 flex items-center gap-2 bg-card/50">
+      <Input
+        ref={inputRef}
+        placeholder="Type a message..."
+        value={inputMessage}
+        onChange={(e) => setInputMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="flex-1 bg-background/50 backdrop-blur-sm focus-visible:ring-primary/20 rounded-xl"
+      />
+      <Button
+        size="icon"
+        onClick={sendMessage}
+        disabled={!inputMessage.trim()}
+        className="shrink-0 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl"
       >
-        <Button type="button" variant="ghost" size="icon">
-          <Smile className="h-6 w-6" />
-        </Button>
-        <Button type="button" variant="ghost" size="icon">
-          <Paperclip className="h-6 w-6" />
-        </Button>
-        <Input
-          className="flex-1"
-          type="text"
-          placeholder="Type a message"
-          value={inputMessage}
-          onChange={handleInputChange}
-          onBlur={() => onTyping(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage();
-              onTyping(false);
-            }
-          }}
-        />
-        {inputMessage ? (
-          <Button
-            type="submit"
-            size="icon"
-            className="rounded-full"
-          >
-            <Send className="h-6 w-6" />
-            <span className="sr-only">Send</span>
-          </Button>
-        ) : (
-          <Button type="button" variant="ghost" size="icon">
-            <Mic className="h-6 w-6" />
-          </Button>
-        )}
-      </form>
+        <Send className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

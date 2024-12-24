@@ -77,6 +77,14 @@ export default function UserSearch() {
 
       if (data.id) {
         useStore.getState().addConversation(data);
+
+        const socket = useStore.getState().socket;
+        if (socket && socket.connected) {
+          socket.emit("conversation-started", {
+            conversation: data
+          });
+        }
+
         setOpen(false);
         navigate(`/chat/${data.id}`);
       } else {

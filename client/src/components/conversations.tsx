@@ -126,11 +126,39 @@ export default function Conversations() {
     markMessagesAsRead();
   }, [id, token]);
 
+  // Listen for new conversations
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewConversation = (conversation: Conversation) => {
+      setConversationsWithMessages(prevConversations => {
+
+        // Check if conversation already exists
+        if (prevConversations.some(conversation => conversation.id === conversation.id)) {
+          return prevConversations;
+        }
+
+        // Add new conversation to the beginning
+        return [{
+          ...conversation,
+          lastMessage: undefined,
+          newMessagesCount: 0
+        }, ...prevConversations];
+      });
+    };
+
+    socket.on('conversation-created', handleNewConversation);
+    return () => {
+      socket.off('conversation-created', handleNewConversation);
+    };
+  }, [socket]);
+
   const getOtherParticipant = (conversation: Conversation) => {
     return conversation.participants.find(
       (participant) => participant.id !== userId
     );
   };
+
 
   if (loading) {
     return <ConversationsLoading />;

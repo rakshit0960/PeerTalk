@@ -39,7 +39,7 @@ export const createChatSlice: StateCreator<
     }),
   addConversation: (conversation) =>
     set((state) => {
-      state.conversations.push(conversation);
+      state.conversations = [conversation, ...state.conversations];
     }),
   incrementUnread: (conversationId) =>
     set((state) => {

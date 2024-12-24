@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import UserSearch from "@/components/UserSearch";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
+import { motion } from "framer-motion";
 import { LogOut, Wifi } from "lucide-react";
 import { useEffect, useLayoutEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
 export default function ChatLayout() {
   const location = useLocation();
@@ -76,31 +76,36 @@ export default function ChatLayout() {
   );
 
   return (
-    <div className="flex h-screen mx-auto overflow-hidden">
+    <div className="flex h-screen mx-auto overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ResizablePanelGroup
         direction="horizontal"
-        className="flex h-screen mx-auto overflow-hidden"
+        className="flex h-screen mx-auto overflow-hidden rounded-lg border shadow-2xl"
       >
         <ResizablePanel
           className={`border-r md:block ${isChatOpen ? 'hidden' : 'w-full'}`}
           defaultSize={30}
         >
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-2">
-              <Avatar>
+          <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-primary/20">
                 <AvatarImage
                   src="/placeholder.svg?height=40&width=40"
                   alt="User"
                 />
-                <AvatarFallback>{name.toUpperCase()[0]}</AvatarFallback>
+                <AvatarFallback className="bg-primary/10">{name.toUpperCase()[0]}</AvatarFallback>
               </Avatar>
-              <div className="text-lg">{name}</div>
+              <div>
+                <div className="text-lg font-medium">{name}</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <ConnectionIndicator />
+                  {socket && isConnected ? "Connected" : "Disconnected"}
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <ConnectionIndicator />
               <UserSearch />
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:bg-destructive/10 hover:text-destructive">
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
@@ -109,10 +114,10 @@ export default function ChatLayout() {
           <Conversations />
         </ResizablePanel>
 
-        <ResizableHandle className="invisible md:visible" withHandle />
+        <ResizableHandle className="invisible md:visible bg-border/50 hover:bg-border" withHandle />
 
         <ResizablePanel
-          className={`flex-1 flex flex-col bg-[url('/whatsapp-bg.png')] bg-repeat ${!isChatOpen ? 'hidden md:flex' : 'w-full'
+          className={`flex-1 flex flex-col bg-[url('/whatsapp-bg.png')] bg-repeat bg-opacity-5 ${!isChatOpen ? 'hidden md:flex' : 'w-full'
             }`}
         >
           <Outlet />
