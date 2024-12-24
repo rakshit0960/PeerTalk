@@ -36,9 +36,9 @@ export default function Conversations() {
 
         // Fetch last messages for each conversation
         const withMessages = await Promise.all(
-          data.map(async (conv: Conversation) => {
+          data.map(async (conversation: Conversation) => {
             const messagesResponse = await fetch(
-              `http://localhost:3000/chat/${conv.id}/messages`,
+              `http://localhost:3000/chat/${conversation.id}/messages`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -47,7 +47,7 @@ export default function Conversations() {
             );
             const messages = await messagesResponse.json();
             return {
-              ...conv,
+              ...conversation,
               lastMessage: messages[messages.length - 1],
               newMessagesCount: messages.filter(
                 (m: Message) => m.senderId !== userId && !m.read
@@ -73,16 +73,16 @@ export default function Conversations() {
     if (!socket) return;
 
     const handleNewMessage = (message: Message) => {
-      setConversationsWithMessages(prevConvs => {
-        return prevConvs.map(conv => {
-          if (conv.id === message.conversationId) {
+      setConversationsWithMessages(prevConversation => {
+        return prevConversation.map(conversation => {
+          if (conversation.id === message.conversationId) {
             return {
-              ...conv,
+              ...conversation,
               lastMessage: message,
-              newMessagesCount: message.senderId !== userId ? conv.newMessagesCount + 1 : conv.newMessagesCount
+              newMessagesCount: message.senderId !== userId ? conversation.newMessagesCount + 1 : conversation.newMessagesCount
             };
           }
-          return conv;
+          return conversation;
         });
       });
     };
@@ -107,15 +107,15 @@ export default function Conversations() {
         });
 
         // Update local state
-        setConversationsWithMessages(prevConvs => {
-          return prevConvs.map(conv => {
-            if (conv.id === parseInt(id)) {
+        setConversationsWithMessages(prevConversation => {
+          return prevConversation.map(conversation => {
+            if (conversation.id === parseInt(id)) {
               return {
-                ...conv,
+                ...conversation,
                 newMessagesCount: 0
               };
             }
-            return conv;
+            return conversation;
           });
         });
       } catch (error) {

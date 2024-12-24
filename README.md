@@ -1,87 +1,153 @@
-# Chat App
+# Real-time Chat Application
 
-A real-time chat application built with TypeScript, Node.js, and Prisma. This application allows users to communicate in real-time, manage chat rooms, and store messages in a PostgreSQL database.
+A modern real-time chat application built with React, Node.js, and WebSocket technology. Features a responsive UI, real-time messaging, and user authentication.
 
-## Table of Contents
+## Architecture
 
-- [Features](#features)
-- [Technologies](#technologies)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+```ascii
+┌─────────────────────────────────────────────────────────────┐
+│                     Docker Network                          │
+│                                                            │
+│  ┌────────────────────┐          ┌───────────────────┐     │
+│  │    Client Container│          │  Server Container  │     │
+│  │    (React + Nginx)│          │   (Node.js)        │     │
+│  │                   │          │                     │     │
+│  │  ┌─────────────┐  │          │  ┌─────────────┐   │     │
+│  │  │React App    │  │          │  │Express App  │   │     │
+│  │  │(Built)      │  │          │  │            │   │     │
+│  │  └─────┬───────┘  │          │  └─────┬───────┘   │     │
+│  │        │          │          │        │           │     │
+│  │  ┌─────▼───────┐  │   REST   │  ┌─────▼───────┐   │     │
+│  │  │Nginx Server │◄─┼──────────┼─►│Socket.IO    │   │     │
+│  │  │Port 80      │  │   API    │  │Port 3000    │   │     │
+│  │  └─────────────┘  │          │  └─────────────┘   │     │
+│  │                   │          │        ▲           │     │
+│  └───────────────────┘          └────────┼──────────┘     │
+│                                          │                  │
+└──────────────────────────────────────────┼──────────────────┘
+                                           │
+                                    ┌──────▼─────┐
+                                    │PostgreSQL DB│
+                                    │(External)  │
+                                    └────────────┘
+```
 
 ## Features
 
-- Real-time messaging
-- User authentication
-- Chat room management
-- Persistent message storage
+- ⚡ Real-time messaging with Socket.IO
+- 🔐 JWT Authentication
+- 👥 User search and management
+- ✍️ Typing indicators
+- ✅ Message read status
+- 📱 Responsive design
+- 🌙 Dark mode support
 
-## Technologies
+## Tech Stack
 
-- **Node.js**: JavaScript runtime for building server-side applications.
-- **TypeScript**: A superset of JavaScript that adds static types.
-- **Prisma**: An ORM for Node.js and TypeScript that simplifies database access.
-- **PostgreSQL**: A powerful, open-source relational database system.
-- **Express**: A web framework for Node.js.
-- **Socket.IO**: A library for real-time web applications.
+### Frontend
 
-## Installation
+- React 18 with TypeScript
+- TailwindCSS for styling
+- Socket.IO Client
+- Shadcn UI Components
+- Nginx (Production server)
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/chat-app.git
-   cd chat-app
-   ```
+### Backend
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+- Node.js with Express
+- Socket.IO for real-time communication
+- PostgreSQL with Prisma ORM
+- JWT for authentication
+- TypeScript
 
-3. Set up your PostgreSQL database:
-   - Install PostgreSQL on your machine or use a cloud service.
-   - Create a new database for the chat application.
+## Quick Start
 
-4. Set up your environment variables. Create a `.env` file in the root directory and add your configuration:
-   ```plaintext
-   DATABASE_URL=postgresql://username:password@localhost:5432/your_database_name
-   NODE_ENV=development
-   ```
+1. Clone and install dependencies:
 
-5. Run database migrations (if applicable):
-   ```bash
-   npx prisma migrate dev
-   ```
-
-## Usage
-
-To start the development server, run:
 ```bash
-npm run dev
+# Clone the repository
+git clone <repository-url>
+cd chat-app
+
+# Install dependencies
+cd client && npm install
+cd ../server && npm install
 ```
 
-The application will be available at `http://localhost:3000`.
+2. Set up environment variables:
+
+Create `.env` file in server directory:
+
+```env
+DATABASE_URL="postgresql://username:password@host:port/database"
+JWT_SECRET="your-secret-key"
+CLIENT_URL="http://localhost"
+```
+
+3. Start development environment:
+
+```bash
+docker-compose up --build
+```
+
+## Development
+
+### Client Structure
+
+```
+client/
+├── src/
+│   ├── components/     # Reusable UI components
+│   ├── hooks/         # Custom React hooks
+│   ├── pages/         # Page components
+│   ├── store/         # State management
+│   ├── types/         # TypeScript types
+│   └── utils/         # Utility functions
+```
+
+### Server Structure
+
+```
+server/
+├── src/
+│   ├── controllers/   # Route controllers
+│   ├── middleware/    # Express middleware
+│   ├── prisma/       # Database schema and migrations
+│   ├── routes/       # API routes
+│   ├── sockets/      # Socket.IO handlers
+│   └── utils/        # Utility functions
+```
+
+## Docker Configuration
+
+The application is containerized using Docker:
+
+- **Client Container**: Nginx serving built React application
+- **Server Container**: Node.js application with Socket.IO
+- **Database**: External PostgreSQL instance
+
+## API Endpoints
+
+### Authentication
+
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - User login
+- `POST /auth/guest` - Guest login
+
+### Chat
+
+- `GET /chat/conversations` - Get user conversations
+- `GET /chat/:id/messages` - Get conversation messages
+- `POST /chat/:id/messages` - Send message
+- `POST /chat/:id/read` - Mark messages as read
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
-
-1. Fork the repository.
-2. Create your feature branch:
-   ```bash
-   git checkout -b feature/YourFeature
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m 'Add some feature'
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature/YourFeature
-   ```
-5. Open a pull request.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 

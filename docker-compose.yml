@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  client:
+    build: ./client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    environment:
+      - VITE_API_URL=http://localhost:3001
+
+  server:
+    build: ./server
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - CLIENT_URL=http://localhost
+      - PORT=3000

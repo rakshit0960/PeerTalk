@@ -32,10 +32,10 @@ export function MessageSkeleton() {
 export function MessagesLoading() {
   return (
     <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
-      <MessageSkeleton align="start" />
-      <MessageSkeleton align="end" />
-      <MessageSkeleton align="start" />
-      <MessageSkeleton align="end" />
+      <div className="flex justify-start"><MessageSkeleton /></div>
+      <div className="flex justify-end"><MessageSkeleton /></div>
+      <div className="flex justify-start"><MessageSkeleton /></div>
+      <div className="flex justify-end"><MessageSkeleton /></div>
     </div>
   )
 }

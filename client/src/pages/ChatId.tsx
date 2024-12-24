@@ -12,16 +12,19 @@ import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { useCallback, useMemo } from "react";
 import debounce from "lodash/debounce";
 import { SendingIndicator } from "@/components/chat/SendingIndicator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const conversationSchema = z.object({
   id: z.number(),
   name: z.string().nullable(),
   isGroup: z.boolean(),
-  participants: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    email: z.string(),
-  })),
+  participants: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      email: z.string(),
+    })
+  ),
 });
 
 type ConversationResponse = z.infer<typeof conversationSchema>;
@@ -37,12 +40,14 @@ export default function ChatId() {
     email: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [typingUsers, setTypingUsers] = useState<Map<number, string>>(new Map());
+  const [typingUsers, setTypingUsers] = useState<Map<number, string>>(
+    new Map()
+  );
   const [isSending, setIsSending] = useState(false);
 
-  const socket = useStore(store => store.socket);
-  const userId = useStore(store => store.userId);
-  const token = useStore(store => store.token);
+  const socket = useStore((store) => store.socket);
+  const userId = useStore((store) => store.userId);
+  const token = useStore((store) => store.token);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -59,19 +64,22 @@ export default function ChatId() {
       if (!id) return;
 
       try {
-        const response = await fetch(`http://localhost:3000/chat/conversations`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `http://localhost:3000/chat/conversations`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-        if (!response.ok) throw new Error('Failed to fetch conversation');
+        if (!response.ok) throw new Error("Failed to fetch conversation");
 
         const data = await response.json();
         const conversations = z.array(conversationSchema).parse(data);
 
         const currentConversation = conversations.find(
-          (conv: ConversationResponse) => conv.id === parseInt(id)
+          (conversation: ConversationResponse) => conversation.id === parseInt(id)
         );
 
         if (!currentConversation) {
@@ -116,13 +124,16 @@ export default function ChatId() {
     const fetchMessages = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:3000/chat/${id}/messages`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `http://localhost:3000/chat/${id}/messages`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const data = await response.json();
         setMessages(data);
       } catch (error) {
@@ -134,7 +145,7 @@ export default function ChatId() {
 
     if (id) {
       fetchMessages();
-      socket?.emit('join-conversation', { id });
+      socket?.emit("join-conversation", { id });
     }
   }, [id, socket, token]);
 
@@ -143,7 +154,7 @@ export default function ChatId() {
 
     try {
       await fetch(`http://localhost:3000/chat/${id}/read`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -162,18 +173,21 @@ export default function ChatId() {
 
       if (message.conversationId !== parseInt(id)) {
         // Show notification for messages in other conversations
-        const conversation = useStore.getState().conversations.find(
-          c => c.id === message.conversationId
-        );
-        const sender = message.sender || conversation?.participants.find(
-          p => p.id === message.senderId
-        );
+        const conversation = useStore
+          .getState()
+          .conversations.find((c) => c.id === message.conversationId);
+        const sender =
+          message.sender ||
+          conversation?.participants.find((p) => p.id === message.senderId);
 
         toast({
           title: sender?.name || "New message",
           description: message.content,
           action: (
-            <ToastAction altText="Go to conversation" onClick={() => navigate(`/chat/${message.conversationId}`)}>
+            <ToastAction
+              altText="Go to conversation"
+              onClick={() => navigate(`/chat/${message.conversationId}`)}
+            >
               View
             </ToastAction>
           ),
@@ -181,8 +195,8 @@ export default function ChatId() {
 
         useStore.getState().incrementUnread(message.conversationId);
       } else {
-        setMessages(prev => {
-          const messageExists = prev.some(m => m.id === message.id);
+        setMessages((prev) => {
+          const messageExists = prev.some((m) => m.id === message.id);
           if (messageExists) return prev;
           const newMessages = [...prev, message];
           setTimeout(scrollToBottom, 100);
@@ -193,9 +207,9 @@ export default function ChatId() {
     };
 
     if (socket) {
-      socket.on('get-new-message', handleNewMessage);
+      socket.on("get-new-message", handleNewMessage);
       return () => {
-        socket.off('get-new-message', handleNewMessage);
+        socket.off("get-new-message", handleNewMessage);
       };
     }
   }, [socket, id, navigate, markMessagesAsRead]);
@@ -215,25 +229,28 @@ export default function ChatId() {
     setIsSending(true);
 
     try {
-      const response = await fetch(`http://localhost:3000/chat/${id}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: messageContent }),
-      });
+      const response = await fetch(
+        `http://localhost:3000/chat/${id}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content: messageContent }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error("Failed to send message");
       }
 
       const data = await response.json();
       const parsedData = messageSchema.parse(data);
 
-      setMessages(prev => [...prev, parsedData]);
+      setMessages((prev) => [...prev, parsedData]);
 
-      socket?.emit('new-message', parsedData);
+      socket?.emit("new-message", parsedData);
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -250,15 +267,21 @@ export default function ChatId() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleUserTyping = ({ userId, userName }: { userId: number; userName: string }) => {
+    const handleUserTyping = ({
+      userId,
+      userName,
+    }: {
+      userId: number;
+      userName: string;
+    }) => {
       if (userId !== useStore.getState().userId) {
-        setTypingUsers(prev => new Map(prev).set(userId, userName));
+        setTypingUsers((prev) => new Map(prev).set(userId, userName));
       }
     };
 
     const handleUserStopTyping = ({ userId }: { userId: number }) => {
       if (userId !== useStore.getState().userId) {
-        setTypingUsers(prev => {
+        setTypingUsers((prev) => {
           const newMap = new Map(prev);
           newMap.delete(userId);
           return newMap;
@@ -293,14 +316,16 @@ export default function ChatId() {
   return (
     <>
       <ChatHeader participant={otherParticipant} loading={loading} />
-      <div className="flex-1 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-background/10 to-background/30 pointer-events-none" />
-        <MessageList
-          ref={messagesEndRef}
-          messages={messages}
-          loading={loading}
-        />
-      </div>
+      <ScrollArea className="flex-1 p-4">
+        <div className="flex-1 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 to-background/30 pointer-events-none" />
+          <MessageList
+            ref={messagesEndRef}
+            messages={messages}
+            loading={loading}
+          />
+        </div>
+      </ScrollArea>
       <div className="relative border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <TypingIndicator
           typingUsers={Array.from(typingUsers.values())}

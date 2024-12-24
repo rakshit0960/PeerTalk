@@ -1,8 +1,7 @@
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
 import { Message } from "@/types/message";
 import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "../ui/scroll-area";
 import { MessageSkeleton } from "../loading/MessageSkeleton";
 
 interface MessageListProps {
@@ -19,7 +18,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
     }
 
     return (
-      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((message) => {
             const isOwn = message.senderId === userId;
@@ -55,7 +53,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
           })}
           <div ref={ref} />
         </div>
-      </ScrollArea>
     );
   }
 );
