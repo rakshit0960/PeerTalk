@@ -62,7 +62,7 @@ export const createUserSlice: StateCreator<
 
     if (isGuest && token) {
       try {
-        await fetch('http://localhost:3000/auth/guest', {
+        await fetch(`${import.meta.env.VITE_API_URL}/auth/guest`, {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`,

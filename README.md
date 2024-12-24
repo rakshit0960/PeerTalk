@@ -56,6 +56,7 @@ Create `.env` file in server directory:
 DATABASE_URL="postgresql://username:password@host:port/database"
 JWT_SECRET="your-secret-key"
 CLIENT_URL="http://localhost"
+VITE_API_URL="http://localhost:3000"
 ```
 
 3. Start development environment:

@@ -65,7 +65,7 @@ export default function ChatId() {
 
       try {
         const response = await fetch(
-          `http://localhost:3000/chat/conversations`,
+          `${import.meta.env.VITE_API_URL}/chat/conversations`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -125,7 +125,7 @@ export default function ChatId() {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:3000/chat/${id}/messages`,
+          `${import.meta.env.VITE_API_URL}/chat/${id}/messages`,
           {
             method: "GET",
             headers: {
@@ -153,7 +153,7 @@ export default function ChatId() {
     if (!id || !token) return;
 
     try {
-      await fetch(`http://localhost:3000/chat/${id}/read`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/chat/${id}/read`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -230,7 +230,7 @@ export default function ChatId() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/chat/${id}/messages`,
+        `${import.meta.env.VITE_API_URL}/chat/${id}/messages`,
         {
           method: "POST",
           headers: {

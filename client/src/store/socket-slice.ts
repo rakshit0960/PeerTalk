@@ -25,9 +25,9 @@ export const createSocketSlice: StateCreator<
   connect: () => {
     if (!get().socket) {
       const token = useStore.getState().token;
-      console.log("socket connecting...", "http://localhost:3000");
+      console.log("socket connecting...", import.meta.env.VITE_SOCKET_URL);
 
-      const socket = io('http://localhost:3000', {
+      const socket = io(import.meta.env.VITE_SOCKET_URL, {
         extraHeaders: {
           authorization: `${token}`
         }

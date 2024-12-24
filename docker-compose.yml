@@ -2,13 +2,18 @@ version: '3.8'
 
 services:
   client:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_SOCKET_URL=${VITE_SOCKET_URL}
     ports:
       - "80:80"
     depends_on:
       - server
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_SOCKET_URL=${VITE_SOCKET_URL}
 
   server:
     build: ./server
@@ -17,5 +22,5 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
-      - CLIENT_URL=http://localhost
-      - PORT=3000
+      - CLIENT_URL=${CLIENT_URL}
+      - PORT=${PORT}

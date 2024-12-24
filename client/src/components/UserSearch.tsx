@@ -40,7 +40,7 @@ export default function UserSearch() {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3000/users/search/${encodeURIComponent(debouncedSearch)}`,
+        `${import.meta.env.VITE_API_URL}/users/search/${encodeURIComponent(debouncedSearch)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,7 +59,7 @@ export default function UserSearch() {
 
   const startConversation = async (userId: number) => {
     try {
-      const response = await fetch("http://localhost:3000/chat/start", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/chat/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

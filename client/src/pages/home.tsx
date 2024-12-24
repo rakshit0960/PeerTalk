@@ -6,6 +6,8 @@ import { toast } from '@/hooks/use-toast'
 import { MessageCircle, LogIn, UserPlus, Ghost } from 'lucide-react'
 
 export default function Home() {
+  console.log(`api url: ${import.meta.env.VITE_API_URL}`);
+  console.log(`socket url: ${import.meta.env.VITE_SOCKET_URL}`);
   const navigate = useNavigate();
   const isInitialized = useStore(state => state.isInitialized);
   const { setToken, setName, setEmail, setUserId, setIsInitialized, setIsGuest } = useStore(
@@ -21,7 +23,7 @@ export default function Home() {
 
   const handleGuestLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/auth/guest', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/guest`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

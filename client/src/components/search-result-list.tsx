@@ -20,7 +20,7 @@ export default function SearchResultList({
     setLoading(id);
     try {
       const response = await fetch(
-        "http://localhost:3000/chat/conversations/start/",
+        `${import.meta.env.VITE_API_URL}/chat/conversations/start/`,
         {
           method: "POST",
           headers: {
@@ -76,7 +76,7 @@ export default function SearchResultList({
           {loading === user.id && <span className="loading loading-spinner loading-sm"></span>}
         </div>
       ))}
-      <Toaster/>
+      <Toaster />
     </div>
   );
 }

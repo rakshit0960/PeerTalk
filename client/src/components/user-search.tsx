@@ -24,7 +24,7 @@ export default function UsersSearch() {
       try {
         setLoading(true)
         const response = await fetch(
-          `http://localhost:3000/users/search/${debouncedQuery}`,
+          `${import.meta.env.VITE_API_URL}/users/search/${debouncedQuery}`,
           {
             headers: { Authorization: `Bearer ${useStore.getState().token}` },
           }

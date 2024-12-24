@@ -26,7 +26,7 @@ export default function Conversations() {
     const fetchConversations = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:3000/chat/conversations", {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/chat/conversations`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -38,7 +38,7 @@ export default function Conversations() {
         const withMessages = await Promise.all(
           data.map(async (conversation: Conversation) => {
             const messagesResponse = await fetch(
-              `http://localhost:3000/chat/${conversation.id}/messages`,
+              `${import.meta.env.VITE_API_URL}/chat/${conversation.id}/messages`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -99,7 +99,7 @@ export default function Conversations() {
 
     const markMessagesAsRead = async () => {
       try {
-        await fetch(`http://localhost:3000/chat/${id}/read`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/chat/${id}/read`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
