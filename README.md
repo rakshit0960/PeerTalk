@@ -4,33 +4,7 @@ A modern real-time chat application built with React, Node.js, and WebSocket tec
 
 ## Architecture
 
-```ascii
-┌─────────────────────────────────────────────────────────────┐
-│                     Docker Network                          │
-│                                                            │
-│  ┌────────────────────┐          ┌───────────────────┐     │
-│  │    Client Container│          │  Server Container  │     │
-│  │    (React + Nginx)│          │   (Node.js)        │     │
-│  │                   │          │                     │     │
-│  │  ┌─────────────┐  │          │  ┌─────────────┐   │     │
-│  │  │React App    │  │          │  │Express App  │   │     │
-│  │  │(Built)      │  │          │  │            │   │     │
-│  │  └─────┬───────┘  │          │  └─────┬───────┘   │     │
-│  │        │          │          │        │           │     │
-│  │  ┌─────▼───────┐  │   REST   │  ┌─────▼───────┐   │     │
-│  │  │Nginx Server │◄─┼──────────┼─►│Socket.IO    │   │     │
-│  │  │Port 80      │  │   API    │  │Port 3000    │   │     │
-│  │  └─────────────┘  │          │  └─────────────┘   │     │
-│  │                   │          │        ▲           │     │
-│  └───────────────────┘          └────────┼──────────┘     │
-│                                          │                  │
-└──────────────────────────────────────────┼──────────────────┘
-                                           │
-                                    ┌──────▼─────┐
-                                    │PostgreSQL DB│
-                                    │(External)  │
-                                    └────────────┘
-```
+![Architecture Diagram](./architecture.excalidraw.png)
 
 ## Features
 
