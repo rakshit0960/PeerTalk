@@ -1,7 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Search } from "lucide-react";
+import { ChevronLeft, MoreVertical, Search } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { useNavigate } from "react-router-dom";
 
 type ChatHeaderProps = {
   participant: {
@@ -12,6 +13,8 @@ type ChatHeaderProps = {
 };
 
 export function ChatHeader({ participant, loading }: ChatHeaderProps) {
+  const navigate = useNavigate();
+
   if (loading) {
     return (
       <div className="flex items-center justify-between p-4 border-b">
@@ -33,6 +36,14 @@ export function ChatHeader({ participant, loading }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between p-4 border-b">
       <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/chat')}
+          className="md:hidden"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
         <Avatar>
           <AvatarImage src="" alt={participant?.name} />
           <AvatarFallback>
