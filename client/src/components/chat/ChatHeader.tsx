@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, MoreVertical, Search } from "lucide-react";
+import { ChevronLeft, MoreVertical, Search, Video } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { useNavigate } from "react-router-dom";
 
@@ -10,9 +10,10 @@ type ChatHeaderProps = {
     email: string;
   } | null;
   loading?: boolean;
+  onVideoCall?: () => void;
 };
 
-export function ChatHeader({ participant, loading }: ChatHeaderProps) {
+export function ChatHeader({ participant, loading, onVideoCall }: ChatHeaderProps) {
   const navigate = useNavigate();
 
   if (loading) {
@@ -26,6 +27,7 @@ export function ChatHeader({ participant, loading }: ChatHeaderProps) {
           </div>
         </div>
         <div className="flex space-x-2">
+          <Skeleton className="h-9 w-9 rounded-md" />
           <Skeleton className="h-9 w-9 rounded-md" />
           <Skeleton className="h-9 w-9 rounded-md" />
         </div>
@@ -58,6 +60,9 @@ export function ChatHeader({ participant, loading }: ChatHeaderProps) {
         </div>
       </div>
       <div className="flex space-x-2">
+        <Button variant="ghost" size="icon" onClick={onVideoCall} className="hover:bg-primary/10 hover:text-primary">
+          <Video className="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="icon">
           <Search className="h-5 w-5" />
         </Button>

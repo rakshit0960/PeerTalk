@@ -1,18 +1,18 @@
+import { ChatHeader } from "@/components/chat/ChatHeader";
+import { MessageInput } from "@/components/chat/MessageInput";
+import { MessageList } from "@/components/chat/MessageList";
+import { SendingIndicator } from "@/components/chat/SendingIndicator";
+import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { VideoCall } from "@/components/chat/VideoCall";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ToastAction } from "@/components/ui/toast";
 import { toast } from "@/hooks/use-toast";
 import { useStore } from "@/store/store";
 import { Message, messageSchema } from "@/types/message";
-import { z } from "zod";
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ChatHeader } from "@/components/chat/ChatHeader";
-import { MessageList } from "@/components/chat/MessageList";
-import { MessageInput } from "@/components/chat/MessageInput";
-import { ToastAction } from "@/components/ui/toast";
-import { TypingIndicator } from "@/components/chat/TypingIndicator";
-import { useCallback, useMemo } from "react";
 import debounce from "lodash/debounce";
-import { SendingIndicator } from "@/components/chat/SendingIndicator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { z } from "zod";
 
 const conversationSchema = z.object({
   id: z.number(),
@@ -44,6 +44,7 @@ export default function ChatId() {
     new Map()
   );
   const [isSending, setIsSending] = useState(false);
+  const [isInVideoCall, setIsInVideoCall] = useState(false);
 
   const socket = useStore((store) => store.socket);
   const userId = useStore((store) => store.userId);
@@ -313,9 +314,79 @@ export default function ChatId() {
     [socket, id, userId]
   );
 
+  const handleVideoCall = useCallback(() => {
+    if (!socket || !otherParticipant) return;
+
+    setIsInVideoCall(true);
+    // Emit video call request
+    socket.emit("video-call-request", {
+      targetUserId: otherParticipant.id,
+      conversationId: parseInt(id || "0"),
+    });
+
+    toast({
+      title: "Video Call",
+      description: `Initiating video call with ${otherParticipant.name}...`,
+    });
+  }, [socket, otherParticipant, id]);
+
+  const handleEndCall = useCallback(() => {
+    setIsInVideoCall(false);
+    if (socket && otherParticipant) {
+      socket.emit("video-call-ended", {
+        targetUserId: otherParticipant.id,
+        conversationId: parseInt(id || "0"),
+      });
+    }
+  }, [socket, otherParticipant, id]);
+
+  // Listen for video call requests
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleVideoCallRequest = ({ fromUserId, fromUserName }: { fromUserId: number, fromUserName: string }) => {
+      toast({
+        title: "Incoming Video Call",
+        description: `${fromUserName} is calling...`,
+        action: (
+          <ToastAction altText="Accept call" onClick={() => {
+            setIsInVideoCall(true);
+            // Handle accepting video call
+            socket.emit("video-call-accepted", {
+              targetUserId: fromUserId,
+              conversationId: parseInt(id || "0"),
+            });
+          }}>
+            Accept
+          </ToastAction>
+        ),
+      });
+    };
+
+    const handleVideoCallEnded = () => {
+      setIsInVideoCall(false);
+      toast({
+        title: "Call Ended",
+        description: "The video call has ended",
+      });
+    };
+
+    socket.on("video-call-request", handleVideoCallRequest);
+    socket.on("video-call-ended", handleVideoCallEnded);
+
+    return () => {
+      socket.off("video-call-request", handleVideoCallRequest);
+      socket.off("video-call-ended", handleVideoCallEnded);
+    };
+  }, [socket, id]);
+
   return (
     <>
-      <ChatHeader participant={otherParticipant} loading={loading} />
+      <ChatHeader
+        participant={otherParticipant}
+        loading={loading}
+        onVideoCall={handleVideoCall}
+      />
       <ScrollArea className="flex-1 p-4">
         <div className="flex-1 overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-b from-background/10 to-background/30 pointer-events-none" />
@@ -339,6 +410,17 @@ export default function ChatId() {
           onTyping={(isTyping) => emitTyping(isTyping)}
         />
       </div>
+      {otherParticipant && otherParticipant.id && otherParticipant.name && isInVideoCall && (
+        <VideoCall
+          isOpen={isInVideoCall}
+          onClose={handleEndCall}
+          participantName={otherParticipant.name}
+          otherParticipant={{
+            id: otherParticipant.id,
+            name: otherParticipant.name
+          }}
+        />
+      )}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Conversation } from "@/store/chat-slice";
+import { Conversation } from "@/store/slices/chat-slice";
 import { useStore } from "@/store/store";
 import { Message } from "@/types/message";
 import { useEffect, useState } from "react";
@@ -23,20 +23,27 @@ export default function Conversations() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    /**
+     * Fetches all conversations for the current user and their associated last messages.
+     * This function performs two operations:
+     * 1. Fetches all conversations the user is part of
+     * 2. For each conversation, fetches all messages to determine the last message and unread count
+     */
     const fetchConversations = async () => {
       setLoading(true);
       try {
+        // Fetch all conversations for the current user
         const response = await fetch(`${import.meta.env.VITE_API_URL}/chat/conversations`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         if (!response.ok) throw new Error('Failed to fetch conversations');
-        const data = await response.json();
+        const conversations = await response.json();
 
-        // Fetch last messages for each conversation
+        // For each conversation, fetch its messages and extract relevant information
         const withMessages = await Promise.all(
-          data.map(async (conversation: Conversation) => {
+          conversations.map(async (conversation: Conversation) => {
             const messagesResponse = await fetch(
               `${import.meta.env.VITE_API_URL}/chat/${conversation.id}/messages`,
               {
@@ -48,9 +55,9 @@ export default function Conversations() {
             const messages = await messagesResponse.json();
             return {
               ...conversation,
-              lastMessage: messages[messages.length - 1],
+              lastMessage: messages[messages.length - 1], // Get the most recent message
               newMessagesCount: messages.filter(
-                (m: Message) => m.senderId !== userId && !m.read
+                (m: Message) => m.senderId !== userId && !m.read // Count unread messages from other users
               ).length,
             };
           })
@@ -63,10 +70,13 @@ export default function Conversations() {
       }
     };
 
+    // Only fetch conversations if user is authenticated
     if (token) {
       fetchConversations();
     }
   }, [token, userId]);
+
+
 
   // Listen for new messages
   useEffect(() => {
@@ -92,6 +102,8 @@ export default function Conversations() {
       socket.off('get-new-message', handleNewMessage);
     };
   }, [socket, userId]);
+
+
 
   // Mark messages as read when entering a conversation
   useEffect(() => {

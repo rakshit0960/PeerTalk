@@ -12,7 +12,6 @@ import Layout from "./pages/layout";
 import Login from "./pages/login";
 import Register from "./pages/register";
 import { useStore } from "./store/store";
-import { initializeStore } from "./utils/storeUtils";
 import { ToastProvider } from "@/components/ui/toast-provider";
 
 const router = createBrowserRouter([
@@ -53,7 +52,9 @@ const router = createBrowserRouter([
 
 export default function App() {
   useLayoutEffect(() => {
-    if (!useStore.getState().isInitialized) initializeStore();
+    if (!useStore.getState().isInitialized) {
+      useStore.getState().initialize();
+    }
   }, []);
 
   return (

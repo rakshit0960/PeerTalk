@@ -6,8 +6,6 @@ import { toast } from '@/hooks/use-toast'
 import { MessageCircle, LogIn, UserPlus, Ghost } from 'lucide-react'
 
 export default function Home() {
-  console.log(`api url: ${import.meta.env.VITE_API_URL}`);
-  console.log(`socket url: ${import.meta.env.VITE_SOCKET_URL}`);
   const navigate = useNavigate();
   const isInitialized = useStore(state => state.isInitialized);
   const { setToken, setName, setEmail, setUserId, setIsInitialized, setIsGuest } = useStore(

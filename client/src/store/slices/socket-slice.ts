@@ -1,6 +1,6 @@
 import { Socket, io } from "socket.io-client";
 import { StateCreator } from "zustand";
-import { useStore } from "./store";
+import { useStore } from "../store";
 
 type SocketState = {
   socket: Socket | null;

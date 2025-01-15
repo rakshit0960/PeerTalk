@@ -1,120 +1,164 @@
-# Real-time Chat Application
+# Real-Time Chat Application
 
-A modern real-time chat application built with React, Node.js, and WebSocket technology. Features a responsive UI, real-time messaging, and user authentication.
-
-## Architecture
-
-![Architecture Diagram](./architecture.excalidraw.png)
+A modern real-time chat application built with React, Node.js, and WebSocket technology. Features include instant messaging, video calls, typing indicators, and real-time notifications.
 
 ## Features
 
-- ⚡ Real-time messaging with Socket.IO
-- 🔐 JWT Authentication
-- 👥 User search and management
+- 💬 Real-time messaging
+- 📹 Video calling with WebRTC
+- 🔔 Real-time notifications
 - ✍️ Typing indicators
-- ✅ Message read status
-- 📱 Responsive design
-- 🌙 Dark mode support
+- 👤 User authentication
+- 🎨 Modern UI with dark mode
+- 🔒 Secure communication
 
 ## Tech Stack
 
 ### Frontend
 
-- React 18 with TypeScript
-- TailwindCSS for styling
-- Socket.IO Client
-- Shadcn UI Components
-- Nginx (Production server)
+- React with TypeScript
+- Tailwind CSS for styling
+- Shadcn UI components
+- Socket.io client for real-time communication
+- WebRTC for video calls
+- Zustand for state management
+- React Router for navigation
 
 ### Backend
 
 - Node.js with Express
-- Socket.IO for real-time communication
 - PostgreSQL with Prisma ORM
+- Socket.io for WebSocket communication
 - JWT for authentication
-- TypeScript
+- Docker for containerization
 
-## Quick Start
+## Getting Started
 
-1. Clone and install dependencies:
+### Prerequisites
+
+- Node.js (v16 or higher)
+- PostgreSQL
+- Docker (optional)
+
+### Installation
+
+1. Clone the repository:
 
 ```bash
-# Clone the repository
 git clone <repository-url>
-cd chat-app
-
-# Install dependencies
-cd client && npm install
-cd ../server && npm install
+cd chatApp
 ```
 
-2. Set up environment variables:
+2. Install dependencies:
 
-Create `.env` file in server directory:
+```bash
+# Install client dependencies
+cd client
+npm install
+
+# Install server dependencies
+cd ../server
+npm install
+```
+
+3. Set up environment variables:
+
+Create `.env` files in both client and server directories:
+
+Client `.env`:
 
 ```env
-DATABASE_URL="postgresql://username:password@host:port/database"
-JWT_SECRET="your-secret-key"
-CLIENT_URL="http://localhost"
-VITE_API_URL="http://localhost:3000"
+VITE_API_URL=http://localhost:3000
 ```
 
-3. Start development environment:
+Server `.env`:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/chatapp"
+JWT_SECRET="your-jwt-secret"
+CLIENT_URL="http://localhost:5173"
+```
+
+4. Initialize the database:
 
 ```bash
-docker-compose up --build
+cd server
+npx prisma migrate dev
 ```
 
-## Development
+### Running the Application
 
-### Client Structure
+#### Development Mode
 
-```
-client/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── hooks/         # Custom React hooks
-│   ├── pages/         # Page components
-│   ├── store/         # State management
-│   ├── types/         # TypeScript types
-│   └── utils/         # Utility functions
+1. Start the server:
+
+```bash
+cd server
+npm run dev
 ```
 
-### Server Structure
+2. Start the client:
 
-```
-server/
-├── src/
-│   ├── controllers/   # Route controllers
-│   ├── middleware/    # Express middleware
-│   ├── prisma/       # Database schema and migrations
-│   ├── routes/       # API routes
-│   ├── sockets/      # Socket.IO handlers
-│   └── utils/        # Utility functions
+```bash
+cd client
+npm run dev
 ```
 
-## Docker Configuration
+#### Using Docker
 
-The application is containerized using Docker:
+```bash
+docker-compose up
+```
 
-- **Client Container**: Nginx serving built React application
-- **Server Container**: Node.js application with Socket.IO
-- **Database**: External PostgreSQL instance
+## Features in Detail
 
-## API Endpoints
+### Real-time Messaging
+
+- Instant message delivery
+- Read receipts
+- Message history
+- Typing indicators
+
+### Video Calling
+
+- WebRTC-based peer-to-peer connection
+- Camera and microphone controls
+- Connection quality indicators
+- Picture-in-picture view
 
 ### Authentication
 
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - User login
-- `POST /auth/guest` - Guest login
+- JWT-based authentication
+- Secure password handling
+- Persistent sessions
 
-### Chat
+### User Interface
 
-- `GET /chat/conversations` - Get user conversations
-- `GET /chat/:id/messages` - Get conversation messages
-- `POST /chat/:id/messages` - Send message
-- `POST /chat/:id/read` - Mark messages as read
+- Responsive design
+- Modern animations
+- Dark mode support
+- Intuitive layout
+
+## Project Structure
+
+```
+chatApp/
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── store/        # Zustand store
+│   │   ├── pages/        # Page components
+│   │   └── types/        # TypeScript types
+│   └── ...
+├── server/                # Backend Node.js application
+│   ├── src/
+│   │   ├── controllers/  # Route controllers
+│   │   ├── middleware/   # Express middleware
+│   │   ├── routes/      # API routes
+│   │   └── sockets/     # WebSocket handlers
+│   └── ...
+└── docker-compose.yml    # Docker configuration
+```
 
 ## Contributing
 
@@ -126,4 +170,10 @@ The application is containerized using Docker:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Shadcn UI](https://ui.shadcn.com/) for the beautiful UI components
+- [Socket.io](https://socket.io/) for real-time communication
+- [WebRTC](https://webrtc.org/) for video calling capabilities

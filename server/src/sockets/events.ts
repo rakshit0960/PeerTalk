@@ -25,7 +25,6 @@ export const handleConnection = (io: Server, socket: Socket) => {
     });
   });
 
-
   // Handle message event
   socket.on("join-conversation", async ({ id }: { id: string }) => {
     console.log(`Socket ${socket.id} joining conversation ${id}`);
@@ -55,6 +54,70 @@ export const handleConnection = (io: Server, socket: Socket) => {
     userId: number;
   }) => {
     socket.to(conversationId.toString()).emit("user-stop-typing", { userId });
+  });
+
+  // Video call events
+  socket.on("video-call-request", ({ targetUserId, conversationId }: {
+    targetUserId: number;
+    conversationId: number;
+  }) => {
+    const fromUserId = socket.data.userId;
+    io.to(`user:${targetUserId}`).emit("video-call-request", {
+      fromUserId,
+      fromUserName: socket.data.userName,
+      conversationId,
+    });
+  });
+
+  socket.on("video-call-accepted", ({ targetUserId, conversationId }: {
+    targetUserId: number;
+    conversationId: number;
+  }) => {
+    io.to(`user:${targetUserId}`).emit("video-call-accepted", {
+      fromUserId: socket.data.userId,
+      conversationId,
+    });
+  });
+
+  socket.on("video-call-ended", ({ targetUserId, conversationId }: {
+    targetUserId: number;
+    conversationId: number;
+  }) => {
+    io.to(`user:${targetUserId}`).emit("video-call-ended", {
+      fromUserId: socket.data.userId,
+      conversationId,
+    });
+  });
+
+  // WebRTC signaling events
+  socket.on("video-offer", ({ offer, targetUserId }: {
+    offer: RTCSessionDescriptionInit;
+    targetUserId: number;
+  }) => {
+    io.to(`user:${targetUserId}`).emit("video-offer", {
+      offer,
+      fromUserId: socket.data.userId,
+    });
+  });
+
+  socket.on("video-answer", ({ answer, targetUserId }: {
+    answer: RTCSessionDescriptionInit;
+    targetUserId: number;
+  }) => {
+    io.to(`user:${targetUserId}`).emit("video-answer", {
+      answer,
+      fromUserId: socket.data.userId,
+    });
+  });
+
+  socket.on("ice-candidate", ({ candidate, targetUserId }: {
+    candidate: RTCIceCandidateInit;
+    targetUserId: number;
+  }) => {
+    io.to(`user:${targetUserId}`).emit("ice-candidate", {
+      candidate,
+      fromUserId: socket.data.userId,
+    });
   });
 
   // Handle disconnect event

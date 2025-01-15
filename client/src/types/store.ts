@@ -1,5 +1,5 @@
-import { SocketSlice } from "@/store/socket-slice";
-import { UserSlice } from "../store/user-slice";
-import { ChatSlice } from "@/store/chat-slice";
+import { SocketSlice } from "@/store/slices/socket-slice";
+import { UserSlice } from "../store/slices/user-slice";
+import { ChatSlice } from "@/store/slices/chat-slice";
 
 export type Store = UserSlice & SocketSlice & ChatSlice;

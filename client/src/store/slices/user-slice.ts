@@ -1,5 +1,7 @@
 import { StateCreator } from "zustand";
 import { User } from "@/utils/tokenUtils";
+import { jwtDecode } from "jwt-decode";
+import { tokenPayloadSchema } from "@/utils/tokenUtils";
 
 export type UserState = User & {
   isInitialized: boolean;
@@ -14,6 +16,7 @@ type UserAction = {
   setUserId: (userId: number) => void;
   setIsInitialized: (value: boolean) => void;
   setIsGuest: (value: boolean) => void;
+  initialize: () => void;
   logout: () => Promise<void>;
 };
 
@@ -31,6 +34,29 @@ export const createUserSlice: StateCreator<
   email: "",
   isInitialized: false,
   isGuest: false,
+
+  initialize: () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        const parsedToken = tokenPayloadSchema.parse(decodedToken);
+        if (parsedToken.userId === null) throw new Error("invalid userId");
+
+        set((state) => {
+          state.token = token;
+          state.userId = parsedToken.userId;
+          state.name = parsedToken.name;
+          state.email = parsedToken.email;
+          state.isInitialized = true;
+        });
+      } catch (error) {
+        console.error("Invalid token or token payload:", error);
+        localStorage.removeItem('token');
+      }
+    }
+  },
+
   setName: (username) =>
     set((state) => {
       state.name = username;
@@ -80,11 +106,7 @@ export const createUserSlice: StateCreator<
       state.email = '';
       state.isInitialized = false;
       state.isGuest = false;
-      // Clear stored data
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('name');
-      localStorage.removeItem('email');
     });
+    localStorage.removeItem('token');
   },
 });

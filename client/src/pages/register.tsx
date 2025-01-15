@@ -10,7 +10,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { initializeStore } from "@/utils/storeUtils";
+import { useStore } from "@/store/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -77,8 +77,7 @@ export default function Register() {
         console.log("Login successful, token:", token);
 
         localStorage.setItem("token", token);
-
-        initializeStore();
+        useStore.getState().initialize();
         navigate("/chat");
       } else {
         console.error("Login failed:", result.error || "Unknown error");

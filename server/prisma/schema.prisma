@@ -15,10 +15,10 @@ model User {
   password         String
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  conversations    Conversation[]
-  sentMessages     Message[]      @relation("SentMessages")
-  receivedMessages Message[]      @relation("ReceivedMessages")
   isGuest          Boolean        @default(false)
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  sentMessages     Message[]      @relation("SentMessages")
+  conversations    Conversation[] @relation("ConversationToUser")
 }
 
 model Conversation {
@@ -27,8 +27,8 @@ model Conversation {
   isGroup      Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  participants User[]
   messages     Message[]
+  participants User[]    @relation("ConversationToUser")
 }
 
 model Message {
@@ -39,7 +39,7 @@ model Message {
   conversationId Int
   read           Boolean      @default(false)
   createdAt      DateTime     @default(now())
-  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 }
