@@ -7,7 +7,8 @@ import { CustomRequest } from "./types/auth.type";
 import authRoutes from "./routers/auth.routes";
 import cors from "cors";
 import chatRoutes from "./routers/chat.routes";
-import usersRoutes from "./routers/users.routes";
+import userRoutes from "./routers/user.routes";
+import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
 const server = http.createServer(app);
@@ -31,7 +32,7 @@ app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/chat", verifyToken, chatRoutes);
-app.use("/users", verifyToken, usersRoutes);
+app.use("/user", userRoutes);
 
 app.get("/protected", verifyToken, (req: CustomRequest, res: Response) => {
   res.json({ message: `Welcome, user ${req.userId}` });
@@ -40,6 +41,8 @@ app.get("/protected", verifyToken, (req: CustomRequest, res: Response) => {
 app.get("/", (req, res) => res.json({ message: "server is running!" }));
 
 socketHandler(io);
+  
+app.use(errorHandler); // every error in a controller will be handled by this middleware
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
