@@ -13,6 +13,9 @@ import Login from "./pages/login";
 import Register from "./pages/register";
 import { useStore } from "./store/store";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import Settings from "./pages/settings";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const router = createBrowserRouter([
   {
@@ -38,24 +41,48 @@ const router = createBrowserRouter([
     ],
   },
   {
+    path: "settings",
+    element: (
+      <ProtectedRoute>
+        <Settings />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: "chat",
-    element: <ChatLayout />,
+    element: (
+      <ProtectedRoute>
+        <ChatLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
         path: ":id",
-        element: <ChatId />,
+        element: (
+          <ProtectedRoute>
+            <ChatId />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
 ]);
 
 export default function App() {
+  const isInitialized = useStore(state => state.isInitialized);
+
   useLayoutEffect(() => {
-    if (!useStore.getState().isInitialized) {
+    if (!isInitialized) {
       useStore.getState().initialize();
     }
-  }, []);
+  }, [isInitialized]);
+
+  // Don't render until initialized
+  if (!isInitialized) {
+    // show a loading spinner until the app is initialized
+    return <LoadingSpinner size="lg" />;
+  }
 
   return (
     <>

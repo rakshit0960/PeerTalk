@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useStore } from "@/store/store";
-import { MessageSquarePlus, Search } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useStore } from "@/store/store";
+import { Search, MessageCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 type User = {
   id: number;
@@ -25,18 +26,13 @@ export default function UserSearch() {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [startingConversation, setStartingConversation] = useState(false);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const token = useStore(state => state.token);
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  useEffect(() => {
-    if (open) {
-      fetchUsers();
-    }
-  }, [open, debouncedSearch]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -55,10 +51,17 @@ export default function UserSearch() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, token]);
 
-  const startConversation = async (userId: number) => {
+  useEffect(() => {
+    if (open) {
+      fetchUsers();
+    }
+  }, [open, debouncedSearch, fetchUsers]);
+
+  const startConversation = useCallback(async (userId: number) => {
     try {
+      setStartingConversation(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/chat/start`, {
         method: "POST",
         headers: {
@@ -92,55 +95,71 @@ export default function UserSearch() {
       }
     } catch (error) {
       console.error("Error starting conversation:", error);
+    } finally {
+      setStartingConversation(false);
     }
-  };
+  }, [navigate, token]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <MessageSquarePlus className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full hover:bg-primary/10 transition-colors"
+        >
+          <Search className="h-5 w-5 text-primary" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] shadow-lg">
         <DialogHeader>
-          <DialogTitle>New Conversation</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-center">Start a New Conversation</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="flex items-center gap-2 px-2 border rounded-md focus-within:ring-1 focus-within:ring-ring">
-            <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2 px-3 border-2 rounded-lg focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200">
+            <Search className="h-4 w-4 text-primary" />
             <Input
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-0 focus-visible:ring-0"
+              className="border-0 focus-visible:ring-0 placeholder:text-muted-foreground/60"
             />
           </div>
-          <ScrollArea className="h-[300px]">
+          <ScrollArea className="h-[300px] px-1">
             {loading ? (
-              <div className="text-center py-4">Loading users...</div>
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner size="sm" />
+              </div>
             ) : users.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
+              <div className="text-center py-8 text-muted-foreground/80">
                 {searchTerm ? "No users found" : "Type to search users"}
+              </div>
+            ) : startingConversation ? (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <LoadingSpinner size="sm" />
+                <p className="text-sm text-muted-foreground/80">Starting conversation...</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 hover:bg-accent/50 rounded-lg transition-all duration-200 cursor-pointer group"
                     onClick={() => startConversation(user.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar>
+                      <Avatar className="border-2 border-primary/10">
                         <AvatarImage src="" alt={user.name} />
-                        <AvatarFallback>{user.name[0]}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/5 text-primary font-medium">
+                          {user.name[0]}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-medium">{user.name}</h3>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-sm text-muted-foreground/80">{user.email}</p>
                       </div>
                     </div>
+                    <MessageCircle className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 ))}
               </div>

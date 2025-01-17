@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '@/store/store'
 import { toast } from '@/hooks/use-toast'
-import { MessageCircle, LogIn, UserPlus, Ghost } from 'lucide-react'
+import { MessageCircle, LogIn, UserPlus, Ghost, Shield, Zap, Users, Video } from 'lucide-react'
 
 export default function Home() {
   const navigate = useNavigate();
@@ -134,7 +134,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center"
+            className="pt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-center"
           >
             {features.map((feature, index) => (
               <motion.div
@@ -142,9 +142,11 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 * index + 0.8 }}
-                className="p-6 rounded-xl bg-card/30 backdrop-blur-sm border border-primary/10 hover:border-primary/20 transition-colors"
+                className="p-6 rounded-xl bg-card/30 backdrop-blur-sm border border-primary/10 hover:border-primary/20 transition-all hover:shadow-lg hover:shadow-primary/5 group"
               >
-                <feature.icon className="w-8 h-8 mx-auto mb-4 text-primary" />
+                <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                  <feature.icon className="w-6 h-6 text-primary" />
+                </div>
                 <h3 className="font-semibold mb-2">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
               </motion.div>
@@ -158,18 +160,33 @@ export default function Home() {
 
 const features = [
   {
-    title: "Real-time Chat",
-    description: "Experience instant messaging with real-time message delivery and typing indicators.",
-    icon: MessageCircle,
+    title: "Real-time Messaging",
+    description: "Experience instant messaging with live typing indicators and read receipts.",
+    icon: Zap,
   },
   {
-    title: "No Installation",
-    description: "Start chatting right away through your browser. No downloads required.",
+    title: "Video Calls",
+    description: "Start high-quality video calls with your contacts in one click.",
+    icon: Video,
+  },
+  {
+    title: "Find Friends",
+    description: "Connect with friends and make new connections easily.",
+    icon: Users,
+  },
+  {
+    title: "Guest Access",
+    description: "Try instantly without registration. No sign-up required.",
     icon: Ghost,
   },
   {
-    title: "Secure",
-    description: "Your conversations are protected with modern security practices.",
-    icon: LogIn,
+    title: "Secure Chats",
+    description: "Your conversations are protected with end-to-end security.",
+    icon: Shield,
+  },
+  {
+    title: "Instant Sharing",
+    description: "Share images and files seamlessly in your conversations.",
+    icon: MessageCircle,
   },
 ];

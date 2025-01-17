@@ -7,6 +7,8 @@ export type UserState = User & {
   isInitialized: boolean;
   token: string | null;
   isGuest: boolean;
+  tutorialComplete: boolean;
+  isLoggedIn: boolean;
 };
 
 type UserAction = {
@@ -18,6 +20,8 @@ type UserAction = {
   setIsGuest: (value: boolean) => void;
   initialize: () => void;
   logout: () => Promise<void>;
+  setTutorialComplete: () => void;
+  setIsLoggedIn: (value: boolean) => void;
 };
 
 export type UserSlice = UserState & UserAction;
@@ -34,6 +38,8 @@ export const createUserSlice: StateCreator<
   email: "",
   isInitialized: false,
   isGuest: false,
+  tutorialComplete: false,
+  isLoggedIn: false,
 
   initialize: () => {
     const token = localStorage.getItem('token');
@@ -49,11 +55,22 @@ export const createUserSlice: StateCreator<
           state.name = parsedToken.name;
           state.email = parsedToken.email;
           state.isInitialized = true;
+          state.isLoggedIn = true;
+          state.tutorialComplete = localStorage.getItem("tutorialComplete") === "true";
         });
       } catch (error) {
         console.error("Invalid token or token payload:", error);
         localStorage.removeItem('token');
+        set((state) => {
+          state.isLoggedIn = false;
+          state.isInitialized = true;
+        });
       }
+    } else {
+      set((state) => {
+        state.isInitialized = true;
+        state.isLoggedIn = false;
+      });
     }
   },
 
@@ -82,6 +99,11 @@ export const createUserSlice: StateCreator<
     set((state) => {
       state.isGuest = value;
     }),
+  setTutorialComplete: () =>
+    set((state) => {
+      state.tutorialComplete = true;
+      localStorage.setItem("tutorialComplete", "true");
+    }),
   logout: async () => {
     const token = get().token;
     const isGuest = get().isGuest;
@@ -106,7 +128,12 @@ export const createUserSlice: StateCreator<
       state.email = '';
       state.isInitialized = false;
       state.isGuest = false;
+      state.isLoggedIn = false;
     });
     localStorage.removeItem('token');
   },
+  setIsLoggedIn: (value) =>
+    set((state) => {
+      state.isLoggedIn = value;
+    }),
 });

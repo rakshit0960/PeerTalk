@@ -41,6 +41,16 @@ export const startConversation = async (req: CustomRequest, res: Response) => {
       return res.status(400).json({ error: "Participant ID is required" });
     }
 
+    // Verify both users exist
+    const [currentUser, participant] = await Promise.all([
+      db.user.findUnique({ where: { id: req.userId } }),
+      db.user.findUnique({ where: { id: participantId } })
+    ]);
+
+    if (!currentUser || !participant) {
+      return res.status(404).json({ error: "One or both users not found" });
+    }
+
     // Check if conversation already exists
     const existingConversation = await db.conversation.findFirst({
       where: {

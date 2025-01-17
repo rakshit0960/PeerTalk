@@ -11,10 +11,11 @@ import UserSearch from "@/components/UserSearch";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
 import { motion } from "framer-motion";
-import { LogOut, Wifi } from "lucide-react";
+import { LogOut, Settings, Wifi } from "lucide-react";
 import { useEffect, useLayoutEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
+import { Tutorial } from "@/components/Tutorial";
 
 export default function ChatLayout() {
   const location = useLocation();
@@ -22,11 +23,12 @@ export default function ChatLayout() {
   const navigate = useNavigate();
   const logout = useStore(state => state.logout);
 
-  const { name, userId, isInitialized } = useStore(
+  const { name, userId, isInitialized, tutorialComplete } = useStore(
     useShallow((state) => ({
       userId: state.userId,
       name: state.name,
       isInitialized: state.isInitialized,
+      tutorialComplete: state.tutorialComplete,
     }))
   );
 
@@ -105,7 +107,21 @@ export default function ChatLayout() {
 
             <div className="flex items-center gap-2">
               <UserSearch />
-              <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:bg-destructive/10 hover:text-destructive">
+              <Link to="/settings">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-primary/10 hover:text-primary"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="hover:bg-destructive/10 hover:text-destructive"
+              >
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
@@ -123,6 +139,7 @@ export default function ChatLayout() {
           <Outlet />
         </ResizablePanel>
       </ResizablePanelGroup>
+      {!tutorialComplete && <Tutorial />}
     </div>
   );
 }

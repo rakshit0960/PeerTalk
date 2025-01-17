@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, MoreVertical, Search, Video } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 type ChatHeaderProps = {
   participant: {
