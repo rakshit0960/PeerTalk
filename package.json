@@ -4,14 +4,12 @@
   "description": "A modern real-time chat application with video calling capabilities. Built with React, Node.js, and WebRTC. Features instant messaging, peer-to-peer video calls, typing indicators, and real-time notifications, all wrapped in a beautiful UI.",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build --prefix client && npm run build --prefix server",
-    "start": "npm run start --prefix client && npm run start --prefix server",
+    "build": "npm install --prefix client && npm install --prefix server && npm run build --prefix client && npm run build --prefix server",
+    "start": "npm run preview --prefix client && npm run start --prefix server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@aws-sdk/s3-request-presigner": "^3.731.1"
-  }
+  "dependencies": {}
 }

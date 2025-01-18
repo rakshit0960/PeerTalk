@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
 import { motion } from "framer-motion";
 import { LogOut, Settings, Wifi } from "lucide-react";
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 
@@ -23,11 +23,9 @@ export default function ChatLayout() {
   const navigate = useNavigate();
   const logout = useStore(state => state.logout);
 
-  const { name, userId, isInitialized, tutorialComplete, profilePicture } = useStore(
+  const { name, tutorialComplete, profilePicture } = useStore(
     useShallow((state) => ({
-      userId: state.userId,
       name: state.name,
-      isInitialized: state.isInitialized,
       tutorialComplete: state.tutorialComplete,
       profilePicture: state.profilePicture
     }))
@@ -39,11 +37,6 @@ export default function ChatLayout() {
     connect: state.connect,
     disconnect: state.disconnect,
   }));
-
-  useLayoutEffect(() => {
-    if (!isInitialized) navigate("/login");
-    else navigate("/chat");
-  }, [userId, navigate, isInitialized]);
 
   useEffect(() => {
     connect();

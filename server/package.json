@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "build": "npm install && npx prisma generate && npx tsc",
+    "build": "npx prisma generate && npx tsc",
     "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/app.ts\""
@@ -28,10 +28,12 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.731.1",
+    "@aws-sdk/s3-request-presigner": "^3.731.1",
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^6.0.1",
     "@prisma/client": "^6.1.0",
     "bcrypt": "^5.1.1",
+    "chatapp": "file:..",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.0",
