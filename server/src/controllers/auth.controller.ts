@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response) => {
     },
   });
 
-  const token = generateToken(newUser.id, newUser.name, newUser.email);
+  const token = generateToken(newUser.id, newUser.name, newUser.email, newUser.bio || "", newUser.profilePicture || "");
   res.json({ message: "User registered successfully", token });
 };
 
@@ -72,7 +72,7 @@ export const login = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Invalid email or password" });
   }
 
-  const token = generateToken(user.id, user.name, user.email);
+  const token = generateToken(user.id, user.name, user.email, user.bio || "", user.profilePicture || "");
   res.json({ message: "Login successful", token });
 };
 
@@ -93,7 +93,7 @@ export const guestLogin = async (req: Request, res: Response) => {
       },
     });
 
-    const token = generateToken(newUser.id, newUser.name, newUser.email);
+    const token = generateToken(newUser.id, newUser.name, newUser.email, newUser.bio || "", newUser.profilePicture || "");
     res.json({ message: "Guest login successful", token });
   } catch (error) {
     console.error("Error creating guest account:", error);

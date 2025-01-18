@@ -23,6 +23,7 @@ const conversationSchema = z.object({
       id: z.number(),
       name: z.string(),
       email: z.string(),
+      profilePicture: z.string().nullable(),
     })
   ),
 });
@@ -38,6 +39,7 @@ export default function ChatId() {
     id: number;
     name: string;
     email: string;
+    profilePicture: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Map<number, string>>(

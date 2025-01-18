@@ -41,7 +41,7 @@ app.get("/protected", verifyToken, (req: CustomRequest, res: Response) => {
 app.get("/", (req, res) => res.json({ message: "server is running!" }));
 
 socketHandler(io);
-  
+
 app.use(errorHandler); // every error in a controller will be handled by this middleware
 
 const PORT = process.env.PORT || 3000;

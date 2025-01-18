@@ -7,14 +7,14 @@ import { MessageCircle, LogIn, UserPlus, Ghost, Shield, Zap, Users, Video } from
 
 export default function Home() {
   const navigate = useNavigate();
-  const isInitialized = useStore(state => state.isInitialized);
-  const { setToken, setName, setEmail, setUserId, setIsInitialized, setIsGuest } = useStore(
+  const isLoggedIn = useStore(state => state.isLoggedIn);
+  const { setToken, setName, setEmail, setUserId, setIsLoggedIn, setIsGuest } = useStore(
     (state) => ({
       setToken: state.setToken,
       setName: state.setName,
       setEmail: state.setEmail,
       setUserId: state.setUserId,
-      setIsInitialized: state.setIsInitialized,
+      setIsLoggedIn: state.setIsLoggedIn,
       setIsGuest: state.setIsGuest,
     })
   );
@@ -42,7 +42,7 @@ export default function Home() {
       setUserId(decodedPayload.id);
       setName(decodedPayload.name);
       setEmail(decodedPayload.email);
-      setIsInitialized(true);
+      setIsLoggedIn(true);
       setIsGuest(true);
 
       localStorage.setItem('token', token);
@@ -92,7 +92,7 @@ export default function Home() {
             transition={{ delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            {isInitialized ? (
+            {isLoggedIn ? (
               <Button
                 size="lg"
                 className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/90"

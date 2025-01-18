@@ -5,15 +5,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // TODO: change destination to a cloud storage S3
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    return cb(null, 'uploads/');
-  },
-  filename: (req: CustomRequest, file, cb) => {
-    const fileExtension = file.originalname.split('.').pop();
-    return cb(null, `${req.userId}.${fileExtension}`);
-  }
-});
+const storage = multer.memoryStorage();
 
 // Filter file type and size
 const fileFilter = (req: CustomRequest, file: Express.Multer.File, cb: multer.FileFilterCallback) => {

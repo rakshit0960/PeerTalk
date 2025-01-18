@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,11 +14,13 @@ import { Search, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { UserAvatar } from "@/components/UserAvatar";
 
 type User = {
   id: number;
   name: string;
   email: string;
+  profilePicture?: string | null;
 };
 
 export default function UserSearch() {
@@ -36,7 +37,7 @@ export default function UserSearch() {
     try {
       setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/users/search/${encodeURIComponent(debouncedSearch)}`,
+        `${import.meta.env.VITE_API_URL}/user/search/${encodeURIComponent(debouncedSearch)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -148,12 +149,11 @@ export default function UserSearch() {
                     onClick={() => startConversation(user.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="border-2 border-primary/10">
-                        <AvatarImage src="" alt={user.name} />
-                        <AvatarFallback className="bg-primary/5 text-primary font-medium">
-                          {user.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                      <UserAvatar
+                        profilePicture={user.profilePicture}
+                        fallback={user.name[0].toUpperCase()}
+                        className="border-2 border-primary/10"
+                      />
                       <div>
                         <h3 className="font-medium">{user.name}</h3>
                         <p className="text-sm text-muted-foreground/80">{user.email}</p>

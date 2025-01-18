@@ -4,6 +4,7 @@ import { z } from "zod";
 import db from "../config/prisma";
 import { generateToken } from "../utils/token.utils";
 import { AppError } from "../middleware/error.middleware";
+import { uploadProfilePictureToS3, generatePresignedUrl } from "../services/s3.service";
 
 const updateNameSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -66,11 +67,29 @@ export const updateProfilePicture = async (
       error.statusCode = 400;
       throw error;
     }
-
+    const key = await uploadProfilePictureToS3(req.file, req.userId);
     const updatedUser = await updateUserAndGenerateToken(req.userId, {
-      profilePicture: req.file.path
+      profilePicture: key
     });
     res.json({ token: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPresignedUrl = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { key } = req.body;
+    if (!key || typeof key !== 'string') {
+      return res.status(400).json({ error: 'Key must be a string' });
+    }
+
+    const url = await generatePresignedUrl(key);
+    res.json({ url });
   } catch (error) {
     next(error);
   }
@@ -94,8 +113,8 @@ const updateUserAndGenerateToken = async (userId: number, data: any) => {
     user.id,
     user.name,
     user.email,
-    user.bio,
-    user.profilePicture
+    user.bio || "",
+    user.profilePicture || ""
   );
 };
 

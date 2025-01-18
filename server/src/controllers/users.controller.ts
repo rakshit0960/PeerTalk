@@ -26,6 +26,7 @@ export const searchUsers = async (req: CustomRequest, res: Response) => {
         id: true,
         name: true,
         email: true,
+        profilePicture: true,
       },
     });
 

@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { UserAvatar } from "@/components/UserAvatar";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
 import { motion } from "framer-motion";
-import { Camera, Loader2, X, ArrowLeft } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Camera, Loader2, X } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 const MAX_NAME_LENGTH = 50;
@@ -16,35 +18,38 @@ const MAX_BIO_LENGTH = 150;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-// TODO: implement the settings page in backend
+interface FormData {
+  name: string;
+  bio: string;
+  profilePicture: File | string;
+}
+
 export default function Settings() {
-  const { name, token } = useStore((state) => ({
+  const { name, token, bio, profilePicture } = useStore((state) => ({
     name: state.name,
-    // bio: state.bio || "",
-    // avatar: state.avatar,
+    bio: state.bio || "",
+    profilePicture: state.profilePicture || "",
     token: state.token,
   }));
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: name,
-    bio: "",
-    avatar: "",
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isDirty, isSubmitting }
+  } = useForm<FormData>({
+    defaultValues: {
+      name: name,
+      bio: bio,
+      profilePicture: profilePicture,
+    }
   });
-  const [imagePreview, setImagePreview] = useState<string | null>("avatar");
-  const [hasChanges, setHasChanges] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const navigate = useNavigate();
+  const formValues = watch();
 
-  useEffect(() => {
-    const hasFormChanges =
-      formData.name !== name ||
-      formData.bio !== "bio" ||
-      formData.avatar !== "avatar";
-    setHasChanges(hasFormChanges);
-  }, [formData, name]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -66,53 +71,79 @@ export default function Settings() {
       return;
     }
 
+    setValue('profilePicture', file, { shouldDirty: true });
+  }, [setValue]);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-      setFormData(prev => ({ ...prev, avatar: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-  };
+  const removeImage = useCallback(() => {
+    setValue('profilePicture', profilePicture, { shouldDirty: true });
+  }, [profilePicture, setValue]);
 
-  const removeImage = () => {
-    setImagePreview(null);
-    setFormData(prev => ({ ...prev, avatar: "" }));
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+  const handleBioUpdate = useCallback(async (bio: string) => {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/profile/bio`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ bio }),
+    });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!hasChanges) return;
+    if (!response.ok) throw new Error("Failed to update bio");
+    const data = await response.json();
+    useStore.getState().setToken(data.token);
+  }, [token]);
 
-    if (formData.name.trim().length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Invalid name",
-        description: "Name cannot be empty",
-      });
-      return;
+  const handleNameUpdate = useCallback(async (name: string) => {
+    if (name.trim().length === 0) {
+      throw new Error("Name cannot be empty");
     }
 
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/profile/name`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name }),
+    });
 
-    setIsLoading(true);
+    if (!response.ok) throw new Error("Failed to update name");
+    const data = await response.json();
+    useStore.getState().setToken(data.token);
+  }, [token]);
 
+  const handleProfilePictureUpdate = useCallback(async (profilePicture: File) => {
+    const pictureData = new FormData();
+    pictureData.append('profilePicture', profilePicture);
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/profile/picture`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: pictureData,
+    });
+
+    if (!response.ok) throw new Error("Failed to update profile picture");
+    const data = await response.json();
+    useStore.getState().setToken(data.token);
+  }, [token]);
+
+  const onSubmit = useCallback(async (data: FormData) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) throw new Error("Failed to update profile");
+      if (data.name !== name) {
+        await handleNameUpdate(data.name);
+      }
+      if (data.bio !== bio) {
+        await handleBioUpdate(data.bio);
+      }
+      if (data.profilePicture instanceof File) {
+        await handleProfilePictureUpdate(data.profilePicture);
+      }
 
       useStore.setState({
-        name: formData.name,
-        // bio: formData.bio,
-        // avatar: formData.avatar,
+        name: data.name,
+        bio: data.bio,
       });
 
       toast({
@@ -126,10 +157,16 @@ export default function Settings() {
         title: "Error",
         description: "Failed to update profile",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [name, bio, handleNameUpdate, handleBioUpdate, handleProfilePictureUpdate]);
+
+  // Memoize the profile picture URL to prevent unnecessary re-renders
+  const profilePictureUrl = useMemo(() => {
+    if (formValues.profilePicture instanceof File) {
+      return URL.createObjectURL(formValues.profilePicture);
+    }
+    return formValues.profilePicture;
+  }, [formValues.profilePicture]);
 
   return (
     <motion.div
@@ -157,19 +194,29 @@ export default function Settings() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Profile Picture */}
           <div className="space-y-4">
             <Label>Profile Picture</Label>
             <div className="flex items-start gap-6">
               <div className="relative group">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={imagePreview || undefined} />
-                  <AvatarFallback className="text-2xl bg-primary/10">
-                    {formData.name[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {imagePreview && (
+                {
+                  formValues.profilePicture instanceof File ? (
+                    <Avatar className="w-24 h-24">
+                      <AvatarImage src={profilePictureUrl} />
+                      <AvatarFallback className="bg-primary/10 text-2xl">
+                        {name?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <UserAvatar
+                      className="w-24 h-24"
+                      profilePicture={profilePictureUrl}
+                      fallbackClassName="bg-primary/10 text-2xl"
+                    />
+                  )
+                }
+                {formValues.profilePicture instanceof File && (
                   <button
                     type="button"
                     onClick={removeImage}
@@ -188,7 +235,6 @@ export default function Settings() {
                   Upload New Picture
                 </Label>
                 <input
-                  ref={fileInputRef}
                   id="avatar-upload"
                   type="file"
                   accept={ACCEPTED_IMAGE_TYPES.join(",")}
@@ -208,14 +254,13 @@ export default function Settings() {
             <div className="relative max-w-md">
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                {...register('name')}
                 maxLength={MAX_NAME_LENGTH}
                 placeholder="Your display name"
                 className="pr-16"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                {formData.name.length}/{MAX_NAME_LENGTH}
+                {formValues.name?.length || 0}/{MAX_NAME_LENGTH}
               </span>
             </div>
           </div>
@@ -226,8 +271,7 @@ export default function Settings() {
             <div className="relative max-w-md">
               <Textarea
                 id="bio"
-                value={formData.bio}
-                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                {...register('bio')}
                 maxLength={MAX_BIO_LENGTH}
                 placeholder="Write a short bio about yourself"
                 className="resize-none pr-16"
@@ -236,12 +280,12 @@ export default function Settings() {
               <span
                 className={cn(
                   "absolute right-3 bottom-3 text-xs",
-                  formData.bio.length >= MAX_BIO_LENGTH
+                  (formValues.bio?.length || 0) >= MAX_BIO_LENGTH
                     ? "text-destructive"
                     : "text-muted-foreground"
                 )}
               >
-                {formData.bio.length}/{MAX_BIO_LENGTH}
+                {formValues.bio?.length || 0}/{MAX_BIO_LENGTH}
               </span>
             </div>
           </div>
@@ -249,10 +293,10 @@ export default function Settings() {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isLoading || !hasChanges}
+            disabled={isSubmitting || !isDirty}
             className="w-full max-w-md"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Updating...

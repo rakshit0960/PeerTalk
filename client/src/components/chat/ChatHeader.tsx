@@ -1,13 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, MoreVertical, Search, Video } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { useNavigate } from "react-router";
+import { UserAvatar } from "../UserAvatar";
 
 type ChatHeaderProps = {
   participant: {
     name: string;
     email: string;
+    profilePicture: string | null;
   } | null;
   loading?: boolean;
   onVideoCall?: () => void;
@@ -46,12 +47,11 @@ export function ChatHeader({ participant, loading, onVideoCall }: ChatHeaderProp
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <Avatar>
-          <AvatarImage src="" alt={participant?.name} />
-          <AvatarFallback>
-            {participant?.name?.[0]?.toUpperCase() || '?'}
-          </AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          fallback={participant?.name?.[0]?.toUpperCase() || '?'}
+          profilePicture={participant?.profilePicture}
+          className="h-10 w-10"
+        />
         <div>
           <h2 className="font-medium">{participant?.name || 'Loading...'}</h2>
           <p className="text-xs text-gray-500">

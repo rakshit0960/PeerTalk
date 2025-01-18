@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Conversation } from "@/store/slices/chat-slice";
 import { useStore } from "@/store/store";
@@ -6,6 +5,8 @@ import { Message } from "@/types/message";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ConversationsLoading } from "./loading/ConversationSkeleton";
+import { UserAvatar } from "./UserAvatar";
+import { MessageCircle } from "lucide-react";
 
 type ConversationWithLastMessage = Conversation & {
   lastMessage?: Message;
@@ -76,8 +77,6 @@ export default function Conversations() {
     }
   }, [token, userId]);
 
-
-
   // Listen for new messages
   useEffect(() => {
     if (!socket) return;
@@ -102,8 +101,6 @@ export default function Conversations() {
       socket.off('get-new-message', handleNewMessage);
     };
   }, [socket, userId]);
-
-
 
   // Mark messages as read when entering a conversation
   useEffect(() => {
@@ -144,7 +141,6 @@ export default function Conversations() {
 
     const handleNewConversation = (conversation: Conversation) => {
       setConversationsWithMessages(prevConversations => {
-
         // Check if conversation already exists
         if (prevConversations.some(conversation => conversation.id === conversation.id)) {
           return prevConversations;
@@ -171,57 +167,66 @@ export default function Conversations() {
     );
   };
 
-
   if (loading) {
     return <ConversationsLoading />;
   }
 
   return (
     <ScrollArea className="h-[calc(100vh-180px)]">
-      <div className="space-y-4 p-2">
-        {conversationsWithMessages.map((conversation) => {
-          const otherParticipant = getOtherParticipant(conversation);
-          const isActive = id === conversation.id.toString();
+      <div className="space-y-2 p-3">
+        {conversationsWithMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <MessageCircle className="h-12 w-12 mb-4 opacity-50" />
+            <p className="text-sm">No conversations yet</p>
+            <p className="text-xs mt-1">Start chatting with someone!</p>
+          </div>
+        ) : (
+          conversationsWithMessages.map((conversation) => {
+            const otherParticipant = getOtherParticipant(conversation);
+            const isActive = id === conversation.id.toString();
 
-          return (
-            <Link to={`/chat/${conversation.id}`} key={conversation.id}>
-              <div
-                className={`flex items-center gap-3 rounded-lg p-2 transition-colors
-                  ${isActive ? 'bg-accent' : 'hover:bg-accent/50'}`}
-              >
-                <Avatar>
-                  <AvatarImage src="" />
-                  <AvatarFallback>{otherParticipant?.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium leading-none truncate">
-                      {otherParticipant?.name}
-                    </p>
-                    {conversation.newMessagesCount > 0 && !isActive && (
-                      <span className="ml-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                        {conversation.newMessagesCount}
-                      </span>
+            return (
+              <Link to={`/chat/${conversation.id}`} key={conversation.id}>
+                <div
+                  className={`flex items-center gap-4 rounded-xl p-3 transition-all duration-200
+                    ${isActive ? 'bg-accent shadow-sm' : 'hover:bg-accent/50'}`}
+                >
+                  <UserAvatar
+                    className="h-12 w-12 border-2 border-primary/10 transition-transform duration-200 hover:scale-105"
+                    fallbackClassName="text-base font-medium"
+                    fallback={otherParticipant?.name[0]}
+                    profilePicture={otherParticipant?.profilePicture}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <p className="font-medium leading-none truncate">
+                        {otherParticipant?.name}
+                      </p>
+                      {conversation.newMessagesCount > 0 && !isActive && (
+                        <span className="ml-2 bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs font-medium animate-pulse">
+                          {conversation.newMessagesCount}
+                        </span>
+                      )}
+                    </div>
+                    {conversation.lastMessage && (
+                      <div className="flex justify-between items-baseline mt-1.5">
+                        <p className="text-sm text-muted-foreground/80 truncate max-w-[200px]">
+                          {conversation.lastMessage.content}
+                        </p>
+                        <span className="text-[11px] text-muted-foreground/60 ml-2 tabular-nums">
+                          {new Date(conversation.lastMessage.createdAt || '').toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
                     )}
                   </div>
-                  {conversation.lastMessage && (
-                    <div className="flex justify-between items-baseline mt-1">
-                      <p className="text-sm text-muted-foreground truncate max-w-[180px]">
-                        {conversation.lastMessage.content}
-                      </p>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {new Date(conversation.lastMessage.createdAt || '').toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                    </div>
-                  )}
                 </div>
-              </div>
-            </Link>
-          );
-        })}
+              </Link>
+            );
+          })
+        )}
       </div>
     </ScrollArea>
   );

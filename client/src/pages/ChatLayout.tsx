@@ -1,5 +1,5 @@
 import Conversations from "@/components/conversations";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tutorial } from "@/components/Tutorial";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
@@ -7,15 +7,15 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
+import { UserAvatar } from "@/components/UserAvatar";
 import UserSearch from "@/components/UserSearch";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/store";
 import { motion } from "framer-motion";
 import { LogOut, Settings, Wifi } from "lucide-react";
 import { useEffect, useLayoutEffect } from "react";
-import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
-import { Tutorial } from "@/components/Tutorial";
 
 export default function ChatLayout() {
   const location = useLocation();
@@ -23,12 +23,13 @@ export default function ChatLayout() {
   const navigate = useNavigate();
   const logout = useStore(state => state.logout);
 
-  const { name, userId, isInitialized, tutorialComplete } = useStore(
+  const { name, userId, isInitialized, tutorialComplete, profilePicture } = useStore(
     useShallow((state) => ({
       userId: state.userId,
       name: state.name,
       isInitialized: state.isInitialized,
       tutorialComplete: state.tutorialComplete,
+      profilePicture: state.profilePicture
     }))
   );
 
@@ -89,13 +90,11 @@ export default function ChatLayout() {
         >
           <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-primary/20">
-                <AvatarImage
-                  src="/placeholder.svg?height=40&width=40"
-                  alt="User"
-                />
-                <AvatarFallback className="bg-primary/10">{name.toUpperCase()[0]}</AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                className="h-10 w-10 border-2 border-primary/20"
+                fallbackClassName="bg-primary/10"
+                profilePicture={profilePicture}
+              />
               <div>
                 <div className="text-lg font-medium">{name}</div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1.5">

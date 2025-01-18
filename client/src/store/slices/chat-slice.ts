@@ -1,6 +1,6 @@
 import { StateCreator } from "zustand";
 
-export type Conversation = {
+export interface Conversation {
   id: number;
   name: string | null;
   isGroup: boolean;
@@ -8,8 +8,9 @@ export type Conversation = {
     id: number;
     name: string;
     email: string;
+    profilePicture?: string;
   }[];
-};
+}
 
 type ChatState = {
   conversations: Conversation[];

@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm install && npx prisma generate && npx tsc",
     "start": "node dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/app.ts\""
@@ -16,6 +16,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.5.5",
     "@types/node-schedule": "^2.1.7",
     "@types/ws": "^8.5.13",
@@ -23,9 +24,10 @@
     "nodemon": "^3.1.4",
     "prisma": "^6.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.731.1",
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^6.0.1",
     "@prisma/client": "^6.1.0",

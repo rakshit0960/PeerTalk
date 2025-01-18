@@ -3,8 +3,8 @@ import { useStore } from "@/store/store";
 import { UserSearchResult } from "@/types/user-search";
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Toaster } from './ui/toaster';
+import { UserAvatar } from './UserAvatar';
 
 export default function SearchResultList({
   searchResultList,
@@ -61,10 +61,11 @@ export default function SearchResultList({
           key={user.id}
           className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-900 ${loading === user.id ? 'opacity-50' : ''}`}
         >
-          <Avatar>
-            <AvatarImage alt={user.name} />
-            <AvatarFallback>{user.name[0]}</AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            fallback={user.name[0].toUpperCase()}
+            profilePicture={user.profilePicture}
+            className="h-10 w-10"
+          />
           <div className="flex-1">
             <div className="flex justify-between items-baseline">
               <div>

@@ -9,6 +9,8 @@ export type UserState = User & {
   isGuest: boolean;
   tutorialComplete: boolean;
   isLoggedIn: boolean;
+  bio: string;
+  profilePicture: string;
 };
 
 type UserAction = {
@@ -36,12 +38,14 @@ export const createUserSlice: StateCreator<
   userId: 0,
   name: "",
   email: "",
+  bio: "",
+  profilePicture: "",
   isInitialized: false,
   isGuest: false,
   tutorialComplete: false,
   isLoggedIn: false,
 
-  initialize: () => {
+  initialize: async () => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -54,12 +58,14 @@ export const createUserSlice: StateCreator<
           state.userId = parsedToken.userId;
           state.name = parsedToken.name;
           state.email = parsedToken.email;
+          state.bio = parsedToken.bio;
+          state.profilePicture = parsedToken.profilePicture;
           state.isInitialized = true;
           state.isLoggedIn = true;
           state.tutorialComplete = localStorage.getItem("tutorialComplete") === "true";
         });
       } catch (error) {
-        console.error("Invalid token or token payload:", error);
+        console.error("Token verification failed:", error);
         localStorage.removeItem('token');
         set((state) => {
           state.isLoggedIn = false;
@@ -94,6 +100,7 @@ export const createUserSlice: StateCreator<
     set((state) => {
       state.token = token;
     });
+    localStorage.setItem("token", token);
   },
   setIsGuest: (value) =>
     set((state) => {

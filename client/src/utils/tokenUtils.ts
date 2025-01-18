@@ -5,6 +5,8 @@ export const tokenPayloadSchema = z.object({
   userId: z.number(),
   name: z.string(),
   email: z.string().email(),
+  bio: z.string(),
+  profilePicture: z.string(),
 });
 
 export type User = z.infer<typeof tokenPayloadSchema>;
