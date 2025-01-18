@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm install --prefix client && npm install --prefix server && npm run build --prefix client && npm run build --prefix server",
-    "start": "npm run preview --prefix client && npm run start --prefix server",
+    "start": "npm run start --prefix server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

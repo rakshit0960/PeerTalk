@@ -31,15 +31,16 @@ app.use(
 
 app.use(express.json());
 
-app.use("/auth", authRoutes);
-app.use("/chat", verifyToken, chatRoutes);
-app.use("/user", userRoutes);
+// API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/chat", verifyToken, chatRoutes);
+app.use("/api/user", userRoutes);
 
-app.get("/protected", verifyToken, (req: CustomRequest, res: Response) => {
+app.get("/api/protected", verifyToken, (req: CustomRequest, res: Response) => {
   res.json({ message: `Welcome, user ${req.userId}` });
 });
 
-app.get("/health", (req, res) => res.json({ message: "server is running!" }));
+app.get("/api/health", (req, res) => res.json({ message: "API is running!" }));
 
 socketHandler(io);
 
