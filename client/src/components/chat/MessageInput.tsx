@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Image as ImageIcon, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ImagePreview } from "./ImagePreview";
+import { toast } from "@/hooks/use-toast";
 
 interface MessageInputProps {
   inputMessage: string;
@@ -10,6 +11,9 @@ interface MessageInputProps {
   sendMessage: (image?: File) => void;
   onTyping: (isTyping: boolean) => void;
 }
+
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 // TODO: Add image upload functionality use s3 to store images
 export function MessageInput({
@@ -42,8 +46,16 @@ export function MessageInput({
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setSelectedImage(file);
+    }
+    if (file && file.size > MAX_FILE_SIZE) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Image must be less than 50MB",
+      });
+      return;
     }
     e.target.value = ''; // Reset input
   };

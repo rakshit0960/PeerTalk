@@ -174,39 +174,14 @@ export default function ChatId() {
     const handleNewMessage = (message: Message) => {
       if (!id) return;
 
-      if (message.conversationId !== parseInt(id)) {
-        // Show notification for messages in other conversations
-        const conversation = useStore
-          .getState()
-          .conversations.find((c) => c.id === message.conversationId);
-        const sender =
-          message.sender ||
-          conversation?.participants.find((p) => p.id === message.senderId);
-
-        toast({
-          title: sender?.name || "New message",
-          description: message.content,
-          action: (
-            <ToastAction
-              altText="Go to conversation"
-              onClick={() => navigate(`/chat/${message.conversationId}`)}
-            >
-              View
-            </ToastAction>
-          ),
-        });
-
-        useStore.getState().incrementUnread(message.conversationId);
-      } else {
-        setMessages((prev) => {
-          const messageExists = prev.some((m) => m.id === message.id);
-          if (messageExists) return prev;
-          const newMessages = [...prev, message];
-          setTimeout(scrollToBottom, 100);
-          markMessagesAsRead();
-          return newMessages;
-        });
-      }
+      setMessages((prev) => {
+        const messageExists = prev.some((m) => m.id === message.id);
+        if (messageExists) return prev;
+        const newMessages = [...prev, message];
+        setTimeout(scrollToBottom, 100);
+        markMessagesAsRead();
+        return newMessages;
+      });
     };
 
     if (socket) {
@@ -224,7 +199,52 @@ export default function ChatId() {
     }
   }, [id]);
 
-  const sendMessage = async () => {
+  const sendImageMessage = async (image: File) => {
+    if (!id) return;
+    setIsSending(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', image);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/chat/${id}/messages/image`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send image");
+      }
+
+      const data = await response.json();
+      const parsedData = messageSchema.parse(data);
+
+      setMessages((prev) => [...prev, parsedData]);
+      socket?.emit("new-message", parsedData);
+
+    } catch (error) {
+      console.error("Error sending image:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send image"
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const sendMessage = async (image?: File) => {
+    if (image) {
+      return sendImageMessage(image);
+    }
+
     if (!inputMessage.trim() || !id) return;
 
     const messageContent = inputMessage;
@@ -250,6 +270,7 @@ export default function ChatId() {
 
       const data = await response.json();
       const parsedData = messageSchema.parse(data);
+      console.log('parsedData', parsedData);
 
       setMessages((prev) => [...prev, parsedData]);
 

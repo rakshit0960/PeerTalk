@@ -5,6 +5,7 @@ export const messageSchema = z.object({
   content: z.string(),
   senderId: z.number(),
   receiverId: z.number(),
+  image: z.string().nullable(),
   conversationId: z.number(),
   createdAt: z.string().optional(),
   sender: z.object({

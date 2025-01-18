@@ -2,7 +2,7 @@ import multer from "multer";
 import { CustomRequest } from "../types/auth.type";
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 60 * 1024 * 1024; // 60MB
 
 // TODO: change destination to a cloud storage S3
 const storage = multer.memoryStorage();
@@ -16,7 +16,7 @@ const fileFilter = (req: CustomRequest, file: Express.Multer.File, cb: multer.Fi
 
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
-    return cb(new Error('File too large. Maximum size is 10MB'));
+    return cb(new Error('File too large. Maximum size is 60MB'));
   }
 
   cb(null, true);

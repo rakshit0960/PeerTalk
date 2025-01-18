@@ -1,7 +1,8 @@
-import { Response } from "express";
+import { Response, NextFunction } from "express";
 import { CustomRequest } from "../types/auth.type";
 import db from "../config/prisma";
 import { z } from "zod";
+import { uploadMessageImageToS3 } from "../services/s3.service";
 
 export const getConversations = async (req: CustomRequest, res: Response) => {
   const user = await db.user.findUnique({
@@ -164,6 +165,10 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
     });
   }
 
+  if (!req.userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   const { content } = validationResult.data;
 
   try {
@@ -241,5 +246,76 @@ export const markMessagesAsRead = async (req: CustomRequest, res: Response) => {
   } catch (error) {
     console.error("Error marking messages as read:", error);
     res.status(500).json({ error: "Failed to mark messages as read" });
+  }
+};
+
+export const sendImageMessage = async (req: CustomRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No image file provided" });
+    }
+
+    if (!req.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Get the conversation to find the receiver
+    const conversation = await db.conversation.findFirst({
+      where: {
+        id: parseInt(id),
+        participants: {
+          some: {
+            id: req.userId,
+          },
+        },
+      },
+      include: {
+        participants: true,
+      },
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    const receiver = conversation.participants.find(p => p.id !== req.userId);
+
+    if (!receiver) {
+      return res.status(400).json({ error: "Receiver not found" });
+    }
+
+    // Upload image to S3
+    const imageKey = await uploadMessageImageToS3(req.file, req.userId!, parseInt(id));
+
+    // Create message with image
+    const newMessage = await db.message.create({
+      data: {
+        content: "",
+        image: imageKey,
+        senderId: req.userId,
+        receiverId: receiver.id,
+        conversationId: parseInt(id),
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        receiver: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.json(newMessage);
+  } catch (error) {
+    next(error);
   }
 };

@@ -29,8 +29,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.731.1",
     "@aws-sdk/s3-request-presigner": "^3.731.1",
-    "@neondatabase/serverless": "^0.10.4",
-    "@prisma/adapter-neon": "^6.0.1",
     "@prisma/client": "^6.1.0",
     "bcrypt": "^5.1.1",
     "chatapp": "file:..",
@@ -43,6 +41,7 @@
     "node-schedule": "^2.1.1",
     "server": "file:",
     "socket.io": "^4.7.5",
+    "uuid": "^11.0.5",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
   }

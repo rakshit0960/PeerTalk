@@ -36,6 +36,7 @@ model Conversation {
 model Message {
   id             Int          @id @default(autoincrement())
   content        String
+  image          String? // URL or key for the image in S3
   senderId       Int
   receiverId     Int
   conversationId Int
