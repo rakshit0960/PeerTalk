@@ -50,6 +50,7 @@ app.use(errorHandler); // every error in a controller will be handled by this mi
 const _dirname = path.resolve();
 
 if (process.env.NODE_ENV === "production") {
+  console.log("production mode");
   app.use(express.static(path.join(_dirname, "../client/dist")));
   app.get("*", (req, res) => {
     res.sendFile(path.join(_dirname, "../client", "dist", "index.html"));
