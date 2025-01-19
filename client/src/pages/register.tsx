@@ -63,7 +63,8 @@ export default function Register() {
     console.log(data);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-        method: "POST",
+        method: "POST"
+        ,
         headers: {
           "Content-Type": "application/json",
         },
@@ -116,7 +117,7 @@ export default function Register() {
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="John Doe" {...register("name")} />
+              <Input id="name" placeholder="full name" {...register("name")} />
               {errors.name && (
                 <p className="text-red-500 text-sm">{errors.name.message}</p>
               )}
@@ -126,7 +127,7 @@ export default function Register() {
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="name@example.com"
                 {...register("email")}
               />
               {errors.email && (
