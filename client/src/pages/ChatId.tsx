@@ -174,6 +174,9 @@ export default function ChatId() {
     const handleNewMessage = (message: Message) => {
       if (!id) return;
 
+      // Only handle messages for the current conversation
+      if (message.conversationId !== parseInt(id)) return;
+
       setMessages((prev) => {
         const messageExists = prev.some((m) => m.id === message.id);
         if (messageExists) return prev;

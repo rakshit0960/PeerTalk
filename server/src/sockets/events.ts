@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { Message, messageSchema } from "../types/message";
-import { ConversationWithParticipants } from "../types/conversation";
+import { ConversationWithParticipants, participantSchema } from "../types/conversation";
 
 // Handle connection
 export const handleConnection = (io: Server, socket: Socket) => {
@@ -37,7 +37,7 @@ export const handleConnection = (io: Server, socket: Socket) => {
     if (parseResult.error) return socket.emit('error', parseResult.error);
 
     message = parseResult.data;
-    io.to(message.conversationId.toString()).emit('get-new-message', message);
+    io.to(`user:${message.receiverId.toString()}`).emit('get-new-message', message);
   });
 
   // Handle typing events

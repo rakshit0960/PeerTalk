@@ -10,6 +10,7 @@ import chatRoutes from "./routers/chat.routes";
 import userRoutes from "./routers/user.routes";
 import { errorHandler } from './middleware/error.middleware';
 import path from "path";
+import { scheduleGuestCleanup } from "./utils/guestCleanup";
 
 const app = express();
 const server = http.createServer(app);
@@ -46,6 +47,8 @@ socketHandler(io);
 
 app.use(errorHandler); // every error in a controller will be handled by this middleware
 
+// Initialize guest cleanup system
+scheduleGuestCleanup();
 
 const _dirname = path.resolve();
 

@@ -125,3 +125,7 @@ export const deleteGuestAccount = async (req: CustomRequest, res: Response) => {
     res.status(500).json({ error: "Failed to delete guest account" });
   }
 };
+
+export const isTokenValid = async (req: Request, res: Response) => {
+  res.json({ message: "Token is valid" });
+};

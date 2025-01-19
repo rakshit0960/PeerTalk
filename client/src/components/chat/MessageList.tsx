@@ -13,6 +13,7 @@ interface MessageListProps {
 export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
   ({ messages, loading }, ref) => {
     const userId = useStore((state) => state.userId);
+    console.log('MessageList userId:', userId);
 
     if (loading) {
       return <MessageSkeleton />;
@@ -21,7 +22,15 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
     return (
       <div className="space-y-4">
         {messages.map((message) => {
-          const isOwn = message.senderId === userId;
+          const isOwn = Number(message.senderId) === Number(userId);
+          console.log('Message ownership:', {
+            messageId: message.id,
+            senderId: message.senderId,
+            userId,
+            isOwn,
+            senderIdType: typeof message.senderId,
+            userIdType: typeof userId
+          });
 
           return (
             <div

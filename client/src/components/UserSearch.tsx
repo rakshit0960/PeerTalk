@@ -81,6 +81,8 @@ export default function UserSearch() {
 
       if (data.id) {
         useStore.getState().addConversation(data);
+        console.log('Conversation data:', data);
+        console.log('userId', userId);
 
         const socket = useStore.getState().socket;
         if (socket && socket.connected) {

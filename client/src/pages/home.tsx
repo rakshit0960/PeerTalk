@@ -1,23 +1,13 @@
 import { Button } from '@/components/ui/button'
-import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
-import { useStore } from '@/store/store'
 import { toast } from '@/hooks/use-toast'
-import { MessageCircle, LogIn, UserPlus, Ghost, Shield, Zap, Users, Video } from 'lucide-react'
+import { useStore } from '@/store/store'
+import { motion } from 'framer-motion'
+import { Ghost, LogIn, MessageCircle, Shield, UserPlus, Users, Video, Zap } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function Home() {
   const navigate = useNavigate();
   const isLoggedIn = useStore(state => state.isLoggedIn);
-  const { setToken, setName, setEmail, setUserId, setIsLoggedIn, setIsGuest } = useStore(
-    (state) => ({
-      setToken: state.setToken,
-      setName: state.setName,
-      setEmail: state.setEmail,
-      setUserId: state.setUserId,
-      setIsLoggedIn: state.setIsLoggedIn,
-      setIsGuest: state.setIsGuest,
-    })
-  );
 
   const handleGuestLogin = async () => {
     try {
@@ -29,24 +19,19 @@ export default function Home() {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create guest account');
       }
-
       const token = data.token;
-      const [, payload] = token.split('.');
-      const decodedPayload = JSON.parse(atob(payload));
+      console.log("Login successful, token:", token);
 
-      setToken(token);
-      setUserId(decodedPayload.id);
-      setName(decodedPayload.name);
-      setEmail(decodedPayload.email);
-      setIsLoggedIn(true);
-      setIsGuest(true);
+      localStorage.setItem("token", token);
+      useStore.getState().setIsInitialized(false);
+      useStore.getState().initialize();
+      navigate("/chat");
 
-      localStorage.setItem('token', token);
-      navigate('/chat');
+
+
     } catch (error) {
       console.error('Guest login error:', error);
       toast({

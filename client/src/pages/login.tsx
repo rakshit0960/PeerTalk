@@ -54,7 +54,7 @@ export default function Login() {
         console.log("Login successful, token:", token);
 
         localStorage.setItem("token", token);
-
+        useStore.getState().setIsInitialized(false);
         useStore.getState().initialize();
         navigate("/chat");
       } else {
