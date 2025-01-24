@@ -57,6 +57,7 @@ export default function ChatId() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -123,6 +124,7 @@ export default function ChatId() {
     fetchConversationDetails();
   }, [id, userId, token]);
 
+  // Fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
       setLoading(true);
@@ -273,7 +275,6 @@ export default function ChatId() {
 
       const data = await response.json();
       const parsedData = messageSchema.parse(data);
-      console.log('parsedData', parsedData);
 
       setMessages((prev) => [...prev, parsedData]);
 
@@ -291,23 +292,26 @@ export default function ChatId() {
     }
   };
 
+  // Listen for typing events
   useEffect(() => {
     if (!socket) return;
 
     const handleUserTyping = ({
+      conversationId,
       userId,
       userName,
     }: {
+      conversationId: number;
       userId: number;
       userName: string;
     }) => {
-      if (userId !== useStore.getState().userId) {
+      if (id &&userId !== useStore.getState().userId && conversationId === parseInt(id)) {
         setTypingUsers((prev) => new Map(prev).set(userId, userName));
       }
     };
 
-    const handleUserStopTyping = ({ userId }: { userId: number }) => {
-      if (userId !== useStore.getState().userId) {
+    const handleUserStopTyping = ({ userId, conversationId }: { userId: number, conversationId: number }) => {
+      if (id && userId !== useStore.getState().userId && conversationId === parseInt(id)) {
         setTypingUsers((prev) => {
           const newMap = new Map(prev);
           newMap.delete(userId);
@@ -323,7 +327,7 @@ export default function ChatId() {
       socket.off("user-typing", handleUserTyping);
       socket.off("user-stop-typing", handleUserStopTyping);
     };
-  }, [socket]);
+  }, [id, socket]);
 
   const emitTyping = useMemo(
     () =>

@@ -53,7 +53,6 @@ export const createUserSlice: StateCreator<
         const parsedToken = tokenPayloadSchema.parse(decodedToken);
         if (parsedToken.userId === null) throw new Error("invalid userId");
 
-        console.log("token", token);
         const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/is-token-valid`, {
           method: 'POST',
           headers: {

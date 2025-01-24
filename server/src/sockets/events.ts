@@ -46,14 +46,16 @@ export const handleConnection = (io: Server, socket: Socket) => {
     userId: number;
     userName: string;
   }) => {
-    socket.to(conversationId.toString()).emit("user-typing", { userId, userName });
+    console.log("typing-start", conversationId, userId, userName);
+    socket.to(conversationId.toString()).emit("user-typing", { userId, userName, conversationId });
   });
 
   socket.on("typing-stop", ({ conversationId, userId }: {
     conversationId: number;
     userId: number;
   }) => {
-    socket.to(conversationId.toString()).emit("user-stop-typing", { userId });
+    console.log("typing-stop", conversationId, userId);
+    socket.to(conversationId.toString()).emit("user-stop-typing", { userId, conversationId });
   });
 
   // Video call events
