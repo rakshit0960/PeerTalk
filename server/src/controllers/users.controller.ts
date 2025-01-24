@@ -28,6 +28,9 @@ export const searchUsers = async (req: CustomRequest, res: Response) => {
         email: true,
         profilePicture: true,
       },
+      orderBy: {
+        createdAt: 'asc',
+      },
     });
 
     res.json(users);
