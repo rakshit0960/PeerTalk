@@ -27,10 +27,16 @@ export const searchUsers = async (req: CustomRequest, res: Response) => {
         name: true,
         email: true,
         profilePicture: true,
+        isGuest: true,
       },
-      orderBy: {
-        createdAt: 'asc',
-      },
+      orderBy: [
+        {
+          isGuest: 'asc',
+        },
+        {
+          createdAt: 'asc',
+        },
+      ],
     });
 
     res.json(users);
