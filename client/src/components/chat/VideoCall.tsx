@@ -117,26 +117,26 @@ export function VideoCall({
             },
             {
               urls: "turn:global.relay.metered.ca:80",
-              username: "eff6643479cf4ce2fa57445b",
-              credential: "NXtHSCM3ihhI45NF",
+              username: "03be128269d49a3569f1bf19",
+              credential: "X5pk3rtP/Uj2F+rC",
             },
             {
               urls: "turn:global.relay.metered.ca:80?transport=tcp",
-              username: "eff6643479cf4ce2fa57445b",
-              credential: "NXtHSCM3ihhI45NF",
+              username: "03be128269d49a3569f1bf19",
+              credential: "X5pk3rtP/Uj2F+rC",
             },
             {
               urls: "turn:global.relay.metered.ca:443",
-              username: "eff6643479cf4ce2fa57445b",
-              credential: "NXtHSCM3ihhI45NF",
+              username: "03be128269d49a3569f1bf19",
+              credential: "X5pk3rtP/Uj2F+rC",
             },
             {
               urls: "turns:global.relay.metered.ca:443?transport=tcp",
-              username: "eff6643479cf4ce2fa57445b",
-              credential: "NXtHSCM3ihhI45NF",
+              username: "03be128269d49a3569f1bf19",
+              credential: "X5pk3rtP/Uj2F+rC",
             },
           ],
-        };
+}
 
         const peerConnection = new RTCPeerConnection(configuration);
         peerConnectionRef.current = peerConnection;
