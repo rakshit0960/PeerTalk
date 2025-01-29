@@ -72,10 +72,10 @@ export default function ChatLayout() {
   );
 
   return (
-    <div className="flex h-screen mx-auto overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex h-[100dvh] mx-auto overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ResizablePanelGroup
         direction="horizontal"
-        className="flex h-screen mx-auto overflow-hidden rounded-lg border shadow-2xl"
+        className="flex h-[100dvh] mx-auto overflow-hidden rounded-lg border shadow-2xl"
       >
         <ResizablePanel
           className={`border-r md:block ${isChatOpen ? 'hidden' : 'w-full'}`}
