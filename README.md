@@ -4,7 +4,7 @@ A modern real-time chat application with video calling capabilities. Built with 
 
 ## Overview
 
-#### deployment link:  [https://peertalk-66wr.onrender.com](https://peertalk-66wr.onrender.com)
+#### deployment link: [https://peertalk-66wr.onrender.com](https://peertalk-66wr.onrender.com)
 
 ### Architecture
 
@@ -15,6 +15,19 @@ A modern real-time chat application with video calling capabilities. Built with 
 ![Data Model](screenshots/er-diagram.png)
 
 ## Features
+
+### Authentication & Security 🔒
+
+![Authentication screenshot](screenshots/auth.png)
+
+- **Custom Google OAuth Implementation**: Built from scratch without third-party libraries
+  - Complete OAuth 2.0 flow implementation
+  - Secure token handling and validation
+  - Profile picture import from Google
+  - Automatic S3 upload for profile pictures
+- **JWT Authentication**: Secure token-based auth
+- **Password Security**: Encrypted password storage
+- **Persistent Sessions**: Stay logged in across sessions
 
 ### Real-time Messaging 💬
 
@@ -33,14 +46,6 @@ A modern real-time chat application with video calling capabilities. Built with 
 - **Camera/Mic Controls**: Easy audio/video management
 - **Quality Indicators**: Monitor connection status
 - **PiP View**: Picture-in-picture support
-
-### Authentication & Security 🔒
-
-![Authentication screenshot](screenshots/auth.png)
-
-- **JWT Authentication**: Secure token-based auth
-- **Password Security**: Encrypted password storage
-- **Persistent Sessions**: Stay logged in across sessions
 
 ### Modern Interface 🎨
 
@@ -67,6 +72,8 @@ A modern real-time chat application with video calling capabilities. Built with 
 
 - **Custom Profiles**: Personalize your profile
 - **Profile Pictures**: Upload custom avatars
+  - Support for Google profile picture import
+  - Automatic S3 storage and optimization
 - **Status Messages**: Set custom status
 - **Account Settings**: Manage preferences
 
@@ -88,6 +95,7 @@ A modern real-time chat application with video calling capabilities. Built with 
 - 🔌 Socket.io
 - 🔑 JWT
 - 🐳 Docker
+- ☁️ AWS S3 for file storage
 
 ## Getting Started
 
@@ -96,6 +104,8 @@ A modern real-time chat application with video calling capabilities. Built with 
 - Node.js (v16 or higher)
 - PostgreSQL
 - Docker (optional)
+- Google Developer Console Project (for OAuth)
+- AWS Account (for S3)
 
 ### Quick Start
 
@@ -125,6 +135,17 @@ Server `.env`:
 DATABASE_URL="postgresql://user:password@localhost:5432/chatapp"
 JWT_SECRET="your-jwt-secret"
 CLIENT_URL="http://localhost:5173"
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_REDIRECT_URI="http://localhost:5173/oauth/google/callback"
+
+# AWS Configuration
+AWS_ACCESS_KEY_ID="your-access-key"
+AWS_SECRET_ACCESS_KEY="your-secret-key"
+AWS_REGION="your-region"
+AWS_S3_BUCKET_NAME="your-bucket"
 ```
 
 3. **Initialize Database**
@@ -168,10 +189,33 @@ chatApp/
 │   │   ├── controllers/  # Route controllers
 │   │   ├── middleware/   # Express middleware
 │   │   ├── routes/       # API routes
+│   │   ├── services/     # Business logic services
 │   │   └── sockets/      # WebSocket handlers
 │   └── ...
 └── docker-compose.yml     # Docker configuration
 ```
+
+## OAuth Implementation Details
+
+The Google OAuth implementation is built from scratch without relying on third-party OAuth libraries. Key components include:
+
+1. **Frontend Flow**:
+   - Custom OAuth consent screen
+   - Secure state management during OAuth flow
+   - Automatic token refresh handling
+   - Profile picture integration
+
+2. **Backend Services**:
+   - Complete OAuth 2.0 flow implementation
+   - Token validation and verification
+   - User profile synchronization
+   - Secure session management
+
+3. **Security Features**:
+   - CSRF protection
+   - Secure token storage
+   - XSS prevention
+   - Rate limiting
 
 ## License
 
