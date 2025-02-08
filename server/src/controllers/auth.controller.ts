@@ -2,8 +2,9 @@ import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { z } from "zod";
 import db from "../config/prisma";
-import { generateToken } from "../utils/token.utils";
+import { getGoogleAccessToken, getGoogleAuthURL, getGoogleUserInfo, upsertGoogleUser } from "../services/google.service";
 import { CustomRequest } from "../types/auth.type";
+import { generateToken } from "../utils/token.utils";
 
 const registerSchema = z
   .object({
@@ -129,3 +130,39 @@ export const deleteGuestAccount = async (req: CustomRequest, res: Response) => {
 export const isTokenValid = async (req: Request, res: Response) => {
   res.json({ message: "Token is valid" });
 };
+
+export const getGoogleOAuthURL = (req: Request, res: Response) => {
+  const url = getGoogleAuthURL();
+  res.json({ url });
+};
+
+export const handleGoogleCallback = async (req: Request, res: Response) => {
+  try {
+    const code = req.query.code as string;
+    if (!code) {
+      return res.send({ error: "No authorization code received" });
+    }
+
+    // get access token with the code
+    const data = await getGoogleAccessToken(code);
+
+    // get user info with the access token
+    const userInfo = await getGoogleUserInfo(data.access_token, data.id_token);
+
+    // upsert user in the database
+    const user = await upsertGoogleUser(userInfo);
+    if (!user) {
+      throw new Error("Failed to create or update user");
+    }
+
+    // generate token
+    const token = generateToken(user.id, user.name, user.email, user.bio || "", user.profilePicture || "");
+
+    // redirect back to the client with the token
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    res.send({ token });
+  } catch (error) {
+    console.error("Error in Google OAuth callback:", error);
+    res.send({ error: "Failed to authenticate with Google" });
+  }
+}

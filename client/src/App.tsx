@@ -16,6 +16,7 @@ import { ToastProvider } from "@/components/ui/toast-provider";
 import Settings from "./pages/settings";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { OAuthCallback } from "./pages/OAuthCallback";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,11 @@ const router = createBrowserRouter([
         path: "register",
         element: <Register />,
       },
+      {
+        path: "oauth/google/callback",
+        element: <OAuthCallback />,
+      },
+
     ],
   },
   {
@@ -80,8 +86,16 @@ export default function App() {
 
   // Don't render until initialized
   if (!isInitialized) {
-    // show a loading spinner until the app is initialized
-    return <LoadingSpinner size="lg" />;
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <LoadingSpinner size="lg" />
+          <p className="text-muted-foreground animate-pulse">
+            Initializing...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
