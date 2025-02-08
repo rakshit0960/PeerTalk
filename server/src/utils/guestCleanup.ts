@@ -1,5 +1,6 @@
 import { scheduleJob } from 'node-schedule';
 import db from "../config/prisma";
+import { deleteFromS3 } from '../services/s3.service';
 
 // Function to delete inactive guest users and their data
 export async function cleanupInactiveGuestUsers() {
@@ -27,6 +28,37 @@ export async function cleanupInactiveGuestUsers() {
     // Get all conversation IDs involving inactive guests
     const conversationIds = inactiveGuests.flatMap(guest =>
       guest.conversations.map(conversation => conversation.id)
+    );
+
+    // First, get all messages with images in these conversations
+    const messagesWithImages = await db.message.findMany({
+      where: {
+        conversationId: {
+          in: conversationIds
+        },
+        image: {
+          not: null
+        }
+      },
+      select: {
+        image: true
+      }
+    });
+
+    // Delete all images from S3
+    const imageKeys = messagesWithImages
+      .map(message => message.image)
+      .filter(key => key !== null);
+
+    await Promise.all(
+      imageKeys.map(async (key) => {
+        try {
+          await deleteFromS3(key);
+          console.log(`Deleted image: ${key}`);
+        } catch (error) {
+          console.error(`Failed to delete image ${key}:`, error);
+        }
+      })
     );
 
     // Delete all messages in these conversations
@@ -57,6 +89,7 @@ export async function cleanupInactiveGuestUsers() {
     });
 
     console.log(`Cleaned up ${deletedGuests.count} inactive guest users and their data`);
+    console.log(`Deleted ${imageKeys.length} images from S3`);
   } catch (error) {
     console.error('Error during guest cleanup:', error);
   }
