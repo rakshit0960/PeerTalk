@@ -159,7 +159,6 @@ export const handleGoogleCallback = async (req: Request, res: Response) => {
     const token = generateToken(user.id, user.name, user.email, user.bio || "", user.profilePicture || "");
 
     // redirect back to the client with the token
-    await new Promise(resolve => setTimeout(resolve, 3000));
     res.send({ token });
   } catch (error) {
     console.error("Error in Google OAuth callback:", error);

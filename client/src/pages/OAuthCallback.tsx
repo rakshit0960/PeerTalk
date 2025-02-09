@@ -73,14 +73,13 @@ export function OAuthCallback() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      {/* {isLoading ? ( */}
+      {isLoading ? "" : ""}
         <>
           <LoadingSpinner size="lg" />
           <p className="text-muted-foreground animate-pulse">
             Completing authentication...
           </p>
         </>
-      {/* ) : null} */}
     </div>
   );
 }
