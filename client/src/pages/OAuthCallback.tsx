@@ -46,9 +46,10 @@ export function OAuthCallback() {
         localStorage.setItem("token", result.token);
         setIsLoading(true);
         await useStore.getState().initialize();
-        navigate("/chat");
+        navigate("/chat", { replace: true });
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') return;
+
 
         console.error("OAuth callback error:", error);
         localStorage.removeItem("token");
@@ -59,7 +60,7 @@ export function OAuthCallback() {
           title: "Authentication Failed",
           description: error instanceof Error ? error.message : "Failed to authenticate",
         });
-        navigate("/login");
+        navigate("/login", {replace: true});
       } finally {
         if (!window.location.pathname.includes("/chat")) {
           setIsLoading(false);
