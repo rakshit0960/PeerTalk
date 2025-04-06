@@ -43,7 +43,6 @@ A modern real-time chat application with video calling capabilities. Built with 
 ![Video calling screenshot](screenshots/video-call.png)
 
 - **Peer-to-Peer Connection**: Direct WebRTC connections
-- **Camera/Mic Controls**: Easy audio/video management
 - **Quality Indicators**: Monitor connection status
 - **PiP View**: Picture-in-picture support
 
