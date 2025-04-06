@@ -27,7 +27,6 @@ A modern real-time chat application with video calling capabilities. Built with 
   - Automatic S3 upload for profile pictures
 - **JWT Authentication**: Secure token-based auth
 - **Password Security**: Encrypted password storage
-- **Persistent Sessions**: Stay logged in across sessions
 
 ### Real-time Messaging 💬
 
@@ -43,9 +42,7 @@ A modern real-time chat application with video calling capabilities. Built with 
 ![Video calling screenshot](screenshots/video-call.png)
 
 - **Peer-to-Peer Connection**: Direct WebRTC connections
-- **Camera/Mic Controls**: Easy audio/video management
 - **Quality Indicators**: Monitor connection status
-- **PiP View**: Picture-in-picture support
 
 ### Modern Interface 🎨
 
@@ -62,8 +59,6 @@ A modern real-time chat application with video calling capabilities. Built with 
 ![Chat features screenshot](screenshots/chat-features.png)
 
 - **Typing Indicators**: Real-time typing status
-- **Online Status**: See who's active
-- **Message Reactions**: React to messages
 - **File Sharing**: Share files securely
 
 ### Profile Management 👤
