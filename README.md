@@ -190,28 +190,6 @@ chatApp/
 └── docker-compose.yml     # Docker configuration
 ```
 
-## OAuth Implementation Details
-
-The Google OAuth implementation is built from scratch without relying on third-party OAuth libraries. Key components include:
-
-1. **Frontend Flow**:
-   - Custom OAuth consent screen
-   - Secure state management during OAuth flow
-   - Automatic token refresh handling
-   - Profile picture integration
-
-2. **Backend Services**:
-   - Complete OAuth 2.0 flow implementation
-   - Token validation and verification
-   - User profile synchronization
-   - Secure session management
-
-3. **Security Features**:
-   - CSRF protection
-   - Secure token storage
-   - XSS prevention
-   - Rate limiting
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
