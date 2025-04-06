@@ -11,7 +11,7 @@ import { useStore } from "@/store/store";
 import { Message, messageSchema } from "@/types/message";
 import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { z } from "zod";
 
 const conversationSchema = z.object({
@@ -32,7 +32,6 @@ type ConversationResponse = z.infer<typeof conversationSchema>;
 
 export default function ChatId() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState<string>("");
   const [otherParticipant, setOtherParticipant] = useState<{
@@ -154,22 +153,71 @@ export default function ChatId() {
     }
   }, [id, socket, token]);
 
-  const markMessagesAsRead = useCallback(async () => {
-    if (!id || !token) return;
+  // Mark all messages in the conversation as read
+  const markConversationAsRead = useCallback(() => {
+    if (!id || !socket) return;
 
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/chat/${id}/read`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      // Update local unread count
-      useStore.getState().clearUnread(parseInt(id));
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
+    // Emit socket event to mark entire conversation as read
+    socket.emit("conversation-read", {
+      conversationId: parseInt(id),
+    });
+
+    // Update local state to show messages as read
+    setMessages(prevMessages =>
+      prevMessages.map(message =>
+        message.senderId !== userId && !message.read
+          ? { ...message, read: true }
+          : message
+      )
+    );
+
+    // Update unread count in store
+    useStore.getState().clearUnread(parseInt(id));
+  }, [id, socket, userId]);
+
+  // Mark messages as read when viewing a conversation
+  useEffect(() => {
+    if (messages.length && id && !loading) {
+      markConversationAsRead();
     }
-  }, [id, token]);
+
+    // Also mark messages as read when window gets focus
+    const handleFocus = () => markConversationAsRead();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [messages.length, id, loading, markConversationAsRead]);
+
+  // Listen for read receipts
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleReadReceipt = ({
+      conversationId,
+      messageIds,
+    }: {
+      conversationId: number;
+      messageIds: number[];
+    }) => {
+      if (id && parseInt(id) === conversationId) {
+        setMessages(prevMessages =>
+          prevMessages.map(message =>
+            messageIds.includes(message.id)
+              ? { ...message, read: true }
+              : message
+          )
+        );
+      }
+    };
+
+    socket.on("messages-read-receipt", handleReadReceipt);
+
+    return () => {
+      socket.off("messages-read-receipt", handleReadReceipt);
+    };
+  }, [socket, id]);
 
   // Listen for new messages
   useEffect(() => {
@@ -184,7 +232,12 @@ export default function ChatId() {
         if (messageExists) return prev;
         const newMessages = [...prev, message];
         setTimeout(scrollToBottom, 100);
-        markMessagesAsRead();
+
+        // If the message is from the other user, mark the conversation as read
+        if (message.senderId !== userId) {
+          markConversationAsRead();
+        }
+
         return newMessages;
       });
     };
@@ -195,7 +248,7 @@ export default function ChatId() {
         socket.off("get-new-message", handleNewMessage);
       };
     }
-  }, [socket, id, navigate, markMessagesAsRead]);
+  }, [socket, id, userId, markConversationAsRead]);
 
   // Clear unread messages when entering a conversation
   useEffect(() => {
@@ -305,7 +358,7 @@ export default function ChatId() {
       userId: number;
       userName: string;
     }) => {
-      if (id &&userId !== useStore.getState().userId && conversationId === parseInt(id)) {
+      if (id && userId !== useStore.getState().userId && conversationId === parseInt(id)) {
         setTypingUsers((prev) => new Map(prev).set(userId, userName));
       }
     };

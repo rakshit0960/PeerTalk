@@ -4,6 +4,7 @@ import { Message } from "@/types/message";
 import { forwardRef } from "react";
 import { MessageSkeleton } from "../loading/MessageSkeleton";
 import MessageImageViewer from "./MessageImageViewer";
+import { Check, CheckCheck } from "lucide-react";
 
 interface MessageListProps {
   messages: Message[];
@@ -57,7 +58,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                 )}
                 <div
                   className={cn(
-                    "text-[10px] mt-1.5",
+                    "text-[10px] mt-1.5 flex items-center gap-1",
                     isOwn ? "text-white/80" : "text-zinc-400",
                     message.image && !message.content && "px-1"
                   )}
@@ -66,6 +67,15 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                     hour: '2-digit',
                     minute: '2-digit'
                   })}
+                  {isOwn && (
+                    <span className="ml-1">
+                      {message.read ? (
+                        <CheckCheck className="h-4 w-4 text-sky-300 stroke-[2]" />
+                      ) : (
+                        <Check className="h-4 w-4 text-white stroke-[2]" />
+                      )}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

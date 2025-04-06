@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { Message, messageSchema } from "../types/message";
 import { ConversationWithParticipants, participantSchema } from "../types/conversation";
+import db from "../config/prisma";
 
 // Handle connection
 export const handleConnection = (io: Server, socket: Socket) => {
@@ -38,6 +39,63 @@ export const handleConnection = (io: Server, socket: Socket) => {
 
     message = parseResult.data;
     io.to(`user:${message.receiverId.toString()}`).emit('get-new-message', message);
+  });
+
+  // Handle conversation being read (mark all messages as read)
+  socket.on("conversation-read", async ({ conversationId }: { conversationId: number }) => {
+    try {
+      console.log(`Marking all messages as read in conversation ${conversationId} for user ${userId}`);
+
+      // Find all unread messages in this conversation sent to this user
+      const unreadMessages = await db.message.findMany({
+        where: {
+          conversationId,
+          receiverId: userId,
+          read: false
+        }
+      });
+
+      if (unreadMessages.length === 0) return;
+
+      // Group messages by sender using Map for better type safety
+      // Map<senderId, messageIds[]>
+      // const messageBySender = unreadMessages.reduce((map, message) => {
+      //   if (!map.has(message.senderId)) {
+      //     map.set(message.senderId, []);
+      //   }
+      //   map.get(message.senderId)?.push(message.id);
+      //   return map;
+      // }, new Map<number, number[]>());
+
+      // Update all messages to be read
+      await db.message.updateMany({
+        where: {
+          id: { in: unreadMessages.map(msg => msg.id) },
+          conversationId,
+          receiverId: userId
+        },
+        data: {
+          read: true
+        }
+      });
+
+      // Notify each sender that their messages were read
+      // messageBySender.forEach((messageIds, senderId) => {
+      //   io.to(`user:${senderId}`).emit("messages-read-receipt", {
+      //     conversationId,
+      //     messageIds,
+      //   });
+      // });
+
+      // Notify the sender that their messages were read
+      io.to(`user:${unreadMessages[0].senderId}`).emit("messages-read-receipt", {
+        conversationId,
+        messageIds: unreadMessages.map(msg => msg.id),
+      });
+    } catch (error) {
+      console.error("Error marking conversation as read:", error);
+      socket.emit('error', { message: "Failed to mark conversation as read" });
+    }
   });
 
   // Handle typing events
